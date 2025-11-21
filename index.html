@@ -25,10 +25,17 @@
   </p>
 
   <form id="bcForm">
-    <label>
-      Nama Template WhatsApp
-      <input type="text" name="templateName" value="kirim_hasil_test" required />
-    </label>
+<label>
+  Pilih Template WhatsApp
+  <select name="templateName" id="templateName">
+    <option value="kirim_hasil_test">Kirim Hasil Test</option>
+    <option value="pengumuman_pembayaran">Pengumuman Pembayaran</option>
+    <!-- nanti bisa tambah lagi di sini -->
+  </select>
+</label>
+
+<div class="hint" id="templateInfo"></div>
+<pre id="csvExampleBox"></pre>
 
     <label>
       File CSV (tanpa header)
@@ -40,29 +47,64 @@
 
   <div id="result"></div>
 
-  <script>
-    const form = document.getElementById('bcForm');
-    const resultBox = document.getElementById('result');
+<script>
+  const form = document.getElementById('bcForm');
+  const resultBox = document.getElementById('result');
+  const templateSelect = document.getElementById('templateName');
+  const templateInfo = document.getElementById('templateInfo');
+  const csvExampleBox = document.getElementById('csvExampleBox');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      resultBox.textContent = 'Mengirim... mohon tunggu.';
+  // Konfigurasi template
+  const templatesConfig = {
+    kirim_hasil_test: {
+      label: 'Kirim Hasil Test',
+      description: 'Template dengan 1 variabel: {{1}} = Nama Orang Tua.',
+      csvExample: 'Contoh CSV:\n6282312006987,Ridwan Setiawan\n62818393931,Sueb Darsono'
+    },
+    pengumuman_pembayaran: {
+      label: 'Pengumuman Pembayaran',
+      description: 'Template dengan 3 variabel: {{1}} = Nama Orang Tua, {{2}} = Nama Siswa, {{3}} = Nominal.',
+      csvExample: 'Contoh CSV:\n6282312006987,Bpk Andi,Fulan,500000\n62818393931,Ibu Sinta,Siti,750000'
+    }
+    // kalau ada template lain, tambahkan di sini
+  };
 
-      const formData = new FormData(form);
+  function updateTemplateInfo() {
+    const key = templateSelect.value;
+    const cfg = templatesConfig[key];
+    if (!cfg) {
+      templateInfo.textContent = '';
+      csvExampleBox.textContent = '';
+      return;
+    }
+    templateInfo.textContent = cfg.description + '  (Format: no_wa,var1[,var2,...])';
+    csvExampleBox.textContent = cfg.csvExample;
+  }
 
-      try {
-        const res = await fetch('https://wa-broadcast-api-production.up.railway.app/broadcast', {
-          method: 'POST',
-          body: formData
-        });
+  // set info awal
+  updateTemplateInfo();
+  templateSelect.addEventListener('change', updateTemplateInfo);
 
-        const data = await res.json();
-        resultBox.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        console.error(err);
-        resultBox.textContent = 'Terjadi error saat mengirim. ' + String(err);
-      }
-    });
-  </script>
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    resultBox.textContent = 'Mengirim... mohon tunggu.';
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch('https://wa-broadcast-api-production.up.railway.app/broadcast', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      resultBox.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      console.error(err);
+      resultBox.textContent = 'Terjadi error saat mengirim. ' + String(err);
+    }
+  });
+</script>
+
 </body>
 </html>
