@@ -630,6 +630,12 @@
       window.location.href = "/sendblast";
     }
   })();
+
+function logout() {
+  localStorage.removeItem("sb_logged_in");
+  localStorage.removeItem("sb_school");
+  window.location.href = "/sendblast";
+}
     
   </script>
 </body>
