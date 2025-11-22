@@ -2,190 +2,333 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Broadcast WhatsApp - Sekolah Pesat Bogor</title>
+  <title>MCKuadrat WA Broadcast</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
-    h1 { margin-bottom: 0; }
-    small { color: #666; }
-    label { display: block; margin-top: 16px; font-weight: bold; }
-    input[type="text"], input[type="file"] { width: 100%; padding: 8px; margin-top: 4px; }
-    button { margin-top: 16px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
-    #result { margin-top: 24px; padding: 12px; background: #f5f5f5; white-space: pre-wrap; font-family: monospace; max-height: 300px; overflow-y: auto; }
-    .hint { font-size: 12px; color: #777; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      background: #f5f5f7;
+      color: #222;
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+    }
+    h2 {
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+      margin-top: 16px;
+    }
+    label {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    input[type="text"],
+    input[type="file"],
+    select,
+    textarea {
+      margin-top: 0.25rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #d0d7de;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #2563eb;
+      color: white;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    small {
+      font-size: 0.8rem;
+      color: #555;
+    }
+    pre {
+      margin-top: 12px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      max-height: 260px;
+      overflow: auto;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 4px;
+    }
+    .section-note {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 4px;
+    }
+    hr {
+      border: none;
+      border-top: 1px dashed #e2e8f0;
+      margin: 24px 0;
+    }
   </style>
 </head>
 <body>
-  <h1>Broadcast WhatsApp</h1>
-  <small>Sekolah Pesat Bogor - MCKuadrat</small>
 
-  <p class="hint">
-    Format CSV: <code>no_wa,var1[,var2,...]</code><br>
-    Contoh (template hanya {{1}}):<br>
-    <code>6282312006987,Ridwan Setiawan</code>
-  </p>
+  <h1>MCKuadrat WA Broadcast</h1>
+  <div class="section-note">
+    Tools broadcast WhatsApp via Cloud API<br>
+    <strong>Domain:</strong> app.mckuadrat.com &amp; api.mckuadrat.com
+  </div>
 
-  <form id="bcForm">
-<label>
-  Pilih Template WhatsApp
-  <select name="templateName" id="templateName">
-    <option value="kirim_hasil_test">Kirim Hasil Test</option>
-    <option value="pengumuman_pembayaran">Pengumuman Pembayaran</option>
-    <!-- nanti bisa tambah lagi di sini -->
-  </select>
-</label>
+  <!-- CARD: Broadcast -->
+  <div class="card">
+    <h2>1. Broadcast WhatsApp</h2>
+    <div class="section-note">
+      Pilih template yang sudah <strong>APPROVED</strong> di Meta, lalu upload CSV untuk dikirim massal.
+    </div>
 
-<div class="hint" id="templateInfo"></div>
-<pre id="csvExampleBox"></pre>
+    <label>
+      Pilih Template WhatsApp
+      <span class="badge">Auto load dari Meta</span>
+      <select id="templateSelect">
+        <option value="">(memuat template...)</option>
+      </select>
+    </label>
 
     <label>
       File CSV (tanpa header)
-      <input type="file" name="csv" accept=".csv" required />
+      <input type="file" id="csvFile" accept=".csv" />
+      <small>
+        Format: <code>no_wa,var1</code> per baris<br>
+        Contoh:<br>
+        <code>6282312006987,Ridwan Setiawan</code><br>
+        <code>6281234567890,Budi</code>
+      </small>
     </label>
 
-    <button type="submit">Kirim Broadcast</button>
-  </form>
+    <button id="sendBtn">Kirim Broadcast</button>
 
-  <div id="result"></div>
+    <pre id="output">// Hasil kirim broadcast akan muncul di sini</pre>
+  </div>
 
-<hr>
-<h2>Ajukan Template WhatsApp Baru</h2>
-<p>Template akan diajukan ke Meta. Setelah APPROVED, baru bisa dipakai untuk broadcast.</p>
+  <!-- CARD: Ajukan Template -->
+  <div class="card">
+    <h2>2. Ajukan Template WhatsApp Baru</h2>
+    <div class="section-note">
+      Template akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, akan otomatis muncul di dropdown di atas.
+    </div>
 
-<label>
-  Nama Template (huruf kecil + underscore):
-  <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
-</label>
-<br><br>
+    <label>
+      Nama Template WhatsApp
+      <small>Huruf kecil + underscore. Contoh: <code>kirim_hasil_test_pesat</code></small>
+      <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
+    </label>
 
-<label>
-  Kategori:
-  <select id="tpl_category">
-    <option value="UTILITY">UTILITY (notifikasi, hasil tes)</option>
-    <option value="MARKETING">MARKETING (promo, open house)</option>
-  </select>
-</label>
-<br><br>
+    <label>
+      Kategori Template
+      <select id="tpl_category">
+        <option value="UTILITY">UTILITY (notifikasi / hasil tes)</option>
+        <option value="MARKETING">MARKETING (promo / open house)</option>
+      </select>
+    </label>
 
-<label>
-  Bahasa:
-  <input type="text" id="tpl_language" value="id">
-</label>
-<br><br>
+    <label>
+      Bahasa Template
+      <small>Biasanya <code>id</code> untuk Bahasa Indonesia.</small>
+      <input type="text" id="tpl_language" value="id">
+    </label>
 
-<label>
-  Body Template:
-  <textarea id="tpl_body" rows="4" cols="60"
-    placeholder="Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat.">
-  </textarea>
-</label>
-<br><br>
+    <label>
+      Body Template
+      <small>
+        Bisa gunakan placeholder <code>{{1}}</code>, <code>{{2}}</code>, dst.<br>
+        Contoh:<br>
+        <code>Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat.</code>
+      </small>
+      <textarea id="tpl_body" placeholder="Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat."></textarea>
+    </label>
 
-<label>
-  Contoh isi {{1}} (untuk sample ke Meta):
-  <input type="text" id="tpl_example1" placeholder="Bapak/Ibu Ridwan">
-</label>
-<br><br>
+    <label>
+      Contoh isi {{1}} (Sample untuk Meta)
+      <small>Contoh: <code>Bapak/Ibu Ridwan</code></small>
+      <input type="text" id="tpl_example1" placeholder="Bapak/Ibu Ridwan">
+    </label>
 
-<button id="btnCreateTpl">Ajukan Template ke Meta</button>
+    <button id="btnCreateTpl">Ajukan Template ke Meta</button>
 
-<pre id="tplResult" style="margin-top:10px; background:#f4f4f4; padding:10px;"></pre>
-  
-<script>
-  const form = document.getElementById('bcForm');
-  const resultBox = document.getElementById('result');
-  const templateSelect = document.getElementById('templateName');
-  const templateInfo = document.getElementById('templateInfo');
-  const csvExampleBox = document.getElementById('csvExampleBox');
+    <pre id="tplResult">// Respon pengajuan template akan muncul di sini</pre>
+  </div>
 
-  const API_BASE = "https://api.mckuadrat.com";
+  <script>
+    // ===== KONFIGURASI API BACKEND =====
+    const API_BASE = "https://api.mckuadrat.com";
+    const BACKEND_BROADCAST_URL = `${API_BASE}/broadcast`;
+    const BACKEND_TEMPLATES_URL = `${API_BASE}/templates`;
+    const BACKEND_CREATE_TEMPLATE_URL = `${API_BASE}/templates/create`;
 
-document.getElementById("btnCreateTpl").addEventListener("click", async () => {
-  const name      = document.getElementById("tpl_name").value.trim();
-  const category  = document.getElementById("tpl_category").value;
-  const language  = document.getElementById("tpl_language").value.trim();
-  const body_text = document.getElementById("tpl_body").value.trim();
-  const example_1 = document.getElementById("tpl_example1").value.trim();
-  const outEl     = document.getElementById("tplResult");
+    // ===== LOAD TEMPLATE APPROVED KE DROPDOWN =====
+    async function loadTemplates() {
+      const sel = document.getElementById("templateSelect");
+      sel.innerHTML = '<option value="">(memuat template...)</option>';
 
-  if (!name || !category || !language || !body_text) {
-    alert("Lengkapi nama, kategori, bahasa, dan body template.");
-    return;
-  }
+      try {
+        const res = await fetch(`${BACKEND_TEMPLATES_URL}?status=APPROVED`);
+        const data = await res.json();
 
-  outEl.textContent = "Mengirim permintaan ke server...";
+        if (data.status !== "ok") {
+          sel.innerHTML = '<option value="">Gagal memuat template</option>';
+          console.error("Error templates:", data);
+          return;
+        }
 
-  try {
-    const res = await fetch(`${API_BASE}/templates/create`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        category,
-        language,
-        body_text,
-        example_1
-      })
+        const templates = data.templates || [];
+
+        if (!templates.length) {
+          sel.innerHTML = '<option value="">Tidak ada template APPROVED</option>';
+          return;
+        }
+
+        sel.innerHTML = "";
+        templates.forEach(tpl => {
+          const opt = document.createElement("option");
+          opt.value = tpl.name; // ini yang dikirim ke WA API
+          opt.textContent = `${tpl.name} [${tpl.category}/${tpl.language}]`;
+          sel.appendChild(opt);
+        });
+      } catch (err) {
+        console.error(err);
+        sel.innerHTML = '<option value="">Error memuat template</option>';
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadTemplates);
+
+    // ===== KIRIM BROADCAST =====
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const fileInput = document.getElementById("csvFile");
+      const templateSelect = document.getElementById("templateSelect");
+      const outputEl = document.getElementById("output");
+
+      const templateName = templateSelect.value;
+      if (!templateName) {
+        alert("Pilih template dulu.");
+        return;
+      }
+
+      if (!fileInput.files.length) {
+        alert("Pilih file CSV dulu.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const text = await file.text();
+
+      const rows = text
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => {
+          const parts = line.split(",");
+          const phone = (parts[0] || "").trim();
+          const var1  = (parts[1] || "").trim();
+          return { phone, var1 };
+        });
+
+      if (!rows.length) {
+        alert("CSV kosong atau formatnya salah.");
+        return;
+      }
+
+      outputEl.textContent = "Mengirim ke " + rows.length + " nomor...";
+
+      try {
+        const res = await fetch(BACKEND_BROADCAST_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            template_name: templateName,
+            rows
+          })
+        });
+
+        const data = await res.json();
+        outputEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        console.error(err);
+        outputEl.textContent = "Error: " + err.message;
+      }
     });
 
-    const data = await res.json();
-    outEl.textContent = JSON.stringify(data, null, 2);
-  } catch (err) {
-    console.error(err);
-    outEl.textContent = "Error: " + err.message;
-  }
-});
+    // ===== AJUKAN TEMPLATE BARU =====
+    document.getElementById("btnCreateTpl").addEventListener("click", async () => {
+      const name      = document.getElementById("tpl_name").value.trim();
+      const category  = document.getElementById("tpl_category").value;
+      const language  = document.getElementById("tpl_language").value.trim();
+      const body_text = document.getElementById("tpl_body").value.trim();
+      const example_1 = document.getElementById("tpl_example1").value.trim();
+      const outEl     = document.getElementById("tplResult");
 
-  // Konfigurasi template
-  const templatesConfig = {
-    kirim_hasil_test: {
-      label: 'Kirim Hasil Test',
-      description: 'Template dengan 1 variabel: {{1}} = Nama Orang Tua.',
-      csvExample: 'Contoh CSV:\n6282312006987,Ridwan Setiawan\n62818393931,Sueb Darsono'
-    },
-    pengumuman_pembayaran: {
-      label: 'Pengumuman Pembayaran',
-      description: 'Template dengan 3 variabel: {{1}} = Nama Orang Tua, {{2}} = Nama Siswa, {{3}} = Nominal.',
-      csvExample: 'Contoh CSV:\n6282312006987,Bpk Andi,Fulan,500000\n62818393931,Ibu Sinta,Siti,750000'
-    }
-    // kalau ada template lain, tambahkan di sini
-  };
+      if (!name || !category || !language || !body_text) {
+        alert("Lengkapi nama, kategori, bahasa, dan body template.");
+        return;
+      }
 
-  function updateTemplateInfo() {
-    const key = templateSelect.value;
-    const cfg = templatesConfig[key];
-    if (!cfg) {
-      templateInfo.textContent = '';
-      csvExampleBox.textContent = '';
-      return;
-    }
-    templateInfo.textContent = cfg.description + '  (Format: no_wa,var1[,var2,...])';
-    csvExampleBox.textContent = cfg.csvExample;
-  }
+      outEl.textContent = "Mengirim permintaan ke server...";
 
-  // set info awal
-  updateTemplateInfo();
-  templateSelect.addEventListener('change', updateTemplateInfo);
+      try {
+        const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            language,
+            body_text,
+            example_1
+          })
+        });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    resultBox.textContent = 'Mengirim... mohon tunggu.';
-
-    const formData = new FormData(form);
-
-    try {
-      const res = await fetch('https://api.mckuadrat.com/broadcast', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await res.json();
-      resultBox.textContent = JSON.stringify(data, null, 2);
-    } catch (err) {
-      console.error(err);
-      resultBox.textContent = 'Terjadi error saat mengirim. ' + String(err);
-    }
-  });
-</script>
-
+        const data = await res.json();
+        outEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        console.error(err);
+        outEl.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
 </body>
 </html>
