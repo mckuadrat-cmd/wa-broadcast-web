@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="hidden text-xs text-slate-500 sm:block">
-        app.mckuadrat.com · api.mckuadrat.com
+        Hai, <span id="schoolLabel">Sekolah Pesat Bogor</span>
       </div>
     </div>
   </header>
@@ -603,6 +603,21 @@
         }
       });
     });
+
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const school = params.get("school") || "sekolahpesatbogor";
+
+    const SCHOOL_MAP = {
+      "sekolahpesatbogor": "Sekolah Pesat Bogor",
+      // nanti kalau nambah sekolah tinggal tambah di sini
+    };
+
+    const label = SCHOOL_MAP[school] || school;
+    const el = document.getElementById("schoolLabel");
+    if (el) el.textContent = label;
+  })();
+    
   </script>
 </body>
 </html>
