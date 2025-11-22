@@ -5,705 +5,466 @@
   <title>MCKuadrat WA Broadcast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Optional: Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --bg: #020617;
-      --bg-soft: #020617;
-      --card-bg: #020617;
-      --card-border: #1e293b;
-      --primary: #38bdf8;
-      --primary-soft: rgba(56, 189, 248, 0.18);
-      --primary-hover: #0ea5e9;
-      --text-main: #e5e7eb;
-      --text-muted: #94a3b8;
-      --accent: #22c55e;
-      --danger: #f97373;
-      --radius-lg: 18px;
-      --radius-md: 10px;
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12) 0, transparent 45%),
-        radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.12) 0, transparent 45%),
-        var(--bg);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      padding: 24px 12px 40px;
-    }
-
-    .shell {
-      width: 100%;
-      max-width: 1120px;
-      padding: 24px 20px 32px;
-      border-radius: 26px;
-      background: rgba(15, 23, 42, 0.9);
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      backdrop-filter: blur(14px);
-    }
-
-    .header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 24px;
-    }
-
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .title-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    h1 {
-      font-size: 1.7rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0;
-    }
-
-    .pill {
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.85);
-    }
-
-    .subtitle {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .header-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
-    .header-meta span {
-      display: block;
-    }
-
-    .badge-online {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-      gap: 18px;
-    }
-
-    @media (max-width: 900px) {
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .header-meta {
-        text-align: left;
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mcprimary: {
+              DEFAULT: '#16a34a',
+              dark: '#15803d',
+            }
+          }
+        }
       }
     }
-
-    .card {
-      background: radial-gradient(circle at top left, rgba(56,189,248,0.12) 0, transparent 55%),
-                  radial-gradient(circle at bottom right, rgba(30,64,175,0.35) 0, transparent 60%),
-                  var(--card-bg);
-      border-radius: var(--radius-lg);
-      padding: 18px 18px 20px;
-      border: 1px solid var(--card-border);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg,
-        rgba(148, 163, 184, 0.18),
-        transparent 35%,
-        transparent 65%,
-        rgba(148, 163, 184, 0.12));
-      mix-blend-mode: soft-light;
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-    }
-
-    h2 {
-      margin: 0 0 4px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    h2 span.step {
-      font-size: 0.75rem;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-    }
-
-    .section-note {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: #cbd5f5;
-    }
-
-    label .label-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    label .label-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    label .label-hint {
-      font-size: 0.7rem;
-      font-weight: 400;
-      color: var(--text-muted);
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    input[type="text"],
-    input[type="file"],
-    select,
-    textarea {
-      margin-top: 5px;
-      width: 100%;
-      max-width: 100%;
-      padding: 8px 10px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      font-size: 0.86rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-    }
-
-    input[type="file"] {
-      padding: 7px 10px;
-      cursor: pointer;
-    }
-
-    input::file-selector-button {
-      margin-right: 10px;
-      border: none;
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-size: 0.8rem;
-      padding: 6px 9px;
-      border-radius: 999px;
-      cursor: pointer;
-    }
-
-    input[type="text"]:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
-      background: #020617;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .button-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    button {
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.86rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      background: radial-gradient(circle at top left, #38bdf8 0, #0ea5e9 40%, #2563eb 100%);
-      color: white;
-      box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.07);
-      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.6);
-    }
-
-    button:active {
-      transform: translateY(0);
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.8);
-    }
-
-    .btn-secondary {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      box-shadow: none;
-      color: var(--text-muted);
-      text-transform: none;
-      letter-spacing: 0.02em;
-      padding: 7px 13px;
-    }
-
-    .btn-secondary:hover {
-      filter: none;
-      border-color: var(--primary);
-      color: var(--primary);
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
-    }
-
-    .hint {
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    code {
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.74rem;
-      background: rgba(15, 23, 42, 0.9);
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    pre {
-      margin-top: 12px;
-      background: #020617;
-      color: #e5e7eb;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 0.76rem;
-      max-height: 260px;
-      overflow: auto;
-      border: 1px solid rgba(15, 23, 42, 0.9);
-    }
-
-    .output-label {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      margin-top: 12px;
-      margin-bottom: 2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .output-label span.dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: var(--primary);
-    }
-
-    .footer-meta {
-      margin-top: 18px;
-      font-size: 0.7rem;
-      color: #64748b;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      opacity: 0.9;
-    }
-
-    .footer-meta a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-
-    .stack-3 input[type="text"] {
-      margin-top: 6px;
-    }
-  </style>
+  </script>
 </head>
-<body>
-  <div class="shell">
-    <header class="header">
-      <div class="header-top">
-        <div class="title-wrap">
-          <div class="pill">MCKuadrat · WhatsApp Cloud API</div>
-          <h1>
-            WA Broadcast Panel
-          </h1>
-          <div class="subtitle">
-            Kirim pesan template & laporan ke banyak nomor lewat satu panel yang rapi.
-          </div>
+<body class="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center p-4">
+  <div class="w-full max-w-5xl bg-slate-900/80 border border-slate-700 rounded-2xl shadow-2xl px-6 py-5 md:px-8 md:py-7">
+    <!-- Header -->
+    <header class="flex flex-col gap-2 mb-6 md:mb-8 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          MCKuadrat · WhatsApp Cloud API
         </div>
-        <div class="header-meta">
-          <span><strong>Frontend:</strong> app.mckuadrat.com</span>
-          <span><strong>Backend:</strong> api.mckuadrat.com</span>
-          <span class="badge-online">● API linked & ready</span>
-        </div>
+        <h1 class="text-xl md:text-2xl font-semibold flex items-center gap-2">
+          <span class="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm">
+            📡
+          </span>
+          WA Broadcast Sender
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">
+          Kirim pesan template ke banyak nomor sekaligus. Template diambil otomatis dari WhatsApp Manager.
+        </p>
+      </div>
+      <div class="text-xs text-right text-slate-400">
+        <div><span class="font-semibold text-slate-200">Frontend:</span> app.mckuadrat.com</div>
+        <div><span class="font-semibold text-slate-200">Backend:</span> api.mckuadrat.com</div>
+        <div class="text-emerald-400 font-semibold mt-1">● API Connected</div>
       </div>
     </header>
 
-    <main class="layout">
-      <!-- CARD: Broadcast -->
-      <section class="card">
-        <div class="card-inner">
-          <h2>
-            <span class="step">Step 1</span>
-            Broadcast WhatsApp
-          </h2>
-          <div class="section-note">
-            Pilih template yang sudah <strong>APPROVED</strong>, upload CSV, lalu kirim broadcast dengan aman.
+    <main class="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <!-- LEFT: Main Form -->
+      <section class="space-y-6">
+        <!-- Template & Message -->
+        <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 md:p-5">
+          <div>
+            <h2 class="flex items-center gap-2 text-base font-semibold">
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mcprimary/10 text-mcprimary text-xs">
+                1
+              </span>
+              Pilih Template & Pesan
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Pilih template WhatsApp yang sudah <span class="font-semibold text-slate-200">APPROVED</span> di Meta.
+            </p>
           </div>
 
-          <label>
-            <div class="label-row">
-              <div class="label-title">
-                Pilih Template WhatsApp
-                <span class="chip">Auto-load dari Meta</span>
-              </div>
-            </div>
-            <select id="templateSelect">
-              <option value="">(memuat template...)</option>
+          <!-- Template Selection -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-200 flex items-center justify-between">
+              <span>Pilih Template</span>
+              <span id="templateStatus" class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Loading...</span>
+            </label>
+            <select
+              id="templateSelect"
+              class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="">(Memuat template...)</option>
             </select>
-          </label>
+          </div>
 
-          <label>
-            <div class="label-row">
-              <div class="label-title">
-                File CSV
-              </div>
-              <span class="label-hint">Tanpa header</span>
+          <!-- Message Preview -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label for="messagePreview" class="text-sm font-medium text-slate-200">
+                Preview Body Template
+              </label>
+              <span class="text-[11px] text-slate-400">
+                Variabel: <code class="px-1 rounded bg-slate-800 text-[11px]">{{1}}</code>
+                <code class="px-1 rounded bg-slate-800 text-[11px]">{{2}}</code>
+                <code class="px-1 rounded bg-slate-800 text-[11px]">{{3}}</code>
+              </span>
             </div>
-            <input type="file" id="csvFile" accept=".csv" />
-            <div class="hint">
-              Format: <code>no_wa,var1</code> per baris<br>
-              Contoh:<br>
-              <code>6282312006987,Ridwan Setiawan</code><br>
-              <code>6281234567890,Budi</code>
-            </div>
-          </label>
+            <textarea
+              id="messagePreview"
+              class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-h-[120px]"
+              placeholder="Body template dari Meta akan muncul di sini setelah memilih template..."
+              readonly
+            ></textarea>
+          </div>
+        </div>
 
-          <div class="button-row">
-            <button id="sendBtn">
-              ⬆ Kirim Broadcast
-            </button>
-            <button type="button" class="btn-secondary" onclick="document.getElementById('output').textContent='// Hasil kirim broadcast akan muncul di sini';">
-              Reset output
+        <!-- Recipients -->
+        <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 md:p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="flex items-center gap-2 text-base font-semibold">
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mcprimary/10 text-mcprimary text-xs">
+                2
+              </span>
+              Penerima Broadcast
+            </h2>
+            <span class="inline-flex items-center gap-1 rounded-full border border-slate-600 bg-slate-950/80 px-2.5 py-1 text-[11px] text-slate-300">
+              <span class="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+              <span id="recipientCount">0</span> nomor
+            </span>
+          </div>
+
+          <!-- Add Recipient manually -->
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <input
+              id="manualPhone"
+              type="text"
+              class="flex-1 rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Tambah nomor manual (contoh: 6281234567890)"
+            />
+            <button
+              type="button"
+              id="btnAddRecipient"
+              class="inline-flex items-center justify-center rounded-xl border border-emerald-500/70 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/20"
+            >
+              Tambah
             </button>
           </div>
 
-          <div class="output-label">
-            <span class="dot"></span>
-            Hasil kirim broadcast
+          <!-- CSV Upload -->
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label class="text-xs text-slate-400">
+              Atau upload CSV
+              <span class="block text-[11px] text-slate-500">
+                Format: <code>no_wa,var1</code> per baris (tanpa header)
+              </span>
+            </label>
+            <div class="flex gap-2 sm:ml-auto">
+              <input id="csvFile" type="file" accept=".csv" class="hidden" />
+              <button
+                type="button"
+                id="btnUploadCsv"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-600 bg-slate-950/80 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-800"
+              >
+                📁 Upload CSV
+              </button>
+              <span id="csvInfo" class="text-[11px] text-slate-400 self-center"></span>
+            </div>
           </div>
-          <pre id="output">// Hasil kirim broadcast akan muncul di sini</pre>
+
+          <!-- Recipients List -->
+          <div
+            id="recipientList"
+            class="mt-2 max-h-52 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950/70 text-xs text-slate-200 p-2 space-y-1 hidden"
+          ></div>
+        </div>
+
+        <!-- Scheduling -->
+        <div class="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 md:p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="flex items-center gap-2 text-base font-semibold">
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mcprimary/10 text-mcprimary text-xs">
+                3
+              </span>
+              Jadwal (Opsional)
+            </h2>
+          </div>
+          <div class="space-y-2">
+            <label for="schedule" class="text-sm font-medium text-slate-200">Waktu Kirim</label>
+            <input
+              id="schedule"
+              type="datetime-local"
+              class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+            <p class="text-[11px] text-slate-400">
+              Kosongkan jika ingin langsung kirim sekarang. (Untuk sementara jadwal hanya sebatas catatan, belum di-queue di server.)
+            </p>
+          </div>
+        </div>
+
+        <!-- Send Button + Output -->
+        <div class="space-y-3">
+          <button
+            id="sendBtn"
+            class="w-full inline-flex items-center justify-center rounded-xl bg-mcprimary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/40 hover:bg-mcprimary-dark"
+          >
+            📡 <span class="ml-2" id="sendBtnLabel">Kirim Broadcast Sekarang</span>
+          </button>
+
+          <div class="space-y-1">
+            <div class="text-[11px] text-slate-400 flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-full bg-sky-400"></span>
+              Log respon API
+            </div>
+            <pre
+              id="output"
+              class="max-h-60 overflow-auto rounded-xl border border-slate-800 bg-slate-950/80 p-2 text-[11px] text-slate-200"
+            >// Hasil kirim broadcast akan muncul di sini</pre>
+          </div>
         </div>
       </section>
 
-      <!-- CARD: Ajukan Template -->
-      <section class="card">
-        <div class="card-inner">
-          <h2>
-            <span class="step">Step 2</span>
-            Ajukan Template Baru
-          </h2>
-          <div class="section-note">
-            Template baru akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, otomatis muncul di dropdown kiri.<br>
-            <strong>Language:</strong> English (<code>en</code>) – diset otomatis.
-          </div>
-
-          <label>
-            Nama Template WhatsApp
-            <div class="hint">
-              Huruf kecil + underscore. Contoh: <code>kirim_hasil_test_pesat</code>
+      <!-- RIGHT: Summary -->
+      <aside class="space-y-4">
+        <div class="rounded-2xl border border-sky-700/70 bg-sky-900/20 p-4 md:p-5">
+          <h3 class="text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 text-sky-400 text-[11px]">
+              ℹ
+            </span>
+            Ringkasan Broadcast
+          </h3>
+          <dl class="space-y-1.5 text-sm">
+            <div class="flex justify-between gap-2">
+              <dt class="text-slate-400">Jumlah penerima</dt>
+              <dd class="text-slate-50" id="summaryRecipients">0</dd>
             </div>
-            <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
-          </label>
-
-          <label>
-            Kategori Template
-            <select id="tpl_category">
-              <option value="UTILITY">UTILITY (notifikasi / hasil tes)</option>
-              <option value="MARKETING">MARKETING (promo / open house)</option>
-            </select>
-          </label>
-
-          <label>
-            Body Template
-            <div class="hint">
-              Bisa gunakan placeholder <code>{{1}}</code>, <code>{{2}}</code>, dst.<br>
-              Contoh:<br>
-              <code>Hello {{1}}, here is your test result from MCKuadrat.</code>
+            <div class="flex justify-between gap-2">
+              <dt class="text-slate-400">Template</dt>
+              <dd class="text-slate-50 text-right" id="summaryTemplate">Belum dipilih</dd>
             </div>
-            <textarea id="tpl_body" placeholder="Hello {{1}}, here is your test result from MCKuadrat."></textarea>
-          </label>
-
-          <label>
-            Contoh isi {{1}} (sample untuk Meta)
-            <div class="hint">
-              Contoh: <code>Mr. / Mrs. Ridwan</code> atau <code>Student Name</code>.
+            <div class="flex justify-between gap-2">
+              <dt class="text-slate-400">Waktu kirim</dt>
+              <dd class="text-slate-50 text-right" id="summarySchedule">Segera</dd>
             </div>
-            <input type="text" id="tpl_example1" placeholder="Mr. / Mrs. Ridwan">
-          </label>
-
-          <label>
-            Footer (optional)
-            <div class="hint">
-              Contoh: <code>Powered by MCKuadrat</code> atau catatan singkat lain.
-            </div>
-            <input type="text" id="tpl_footer" placeholder="Powered by MCKuadrat">
-          </label>
-
-          <label>
-            Buttons (optional · Quick Reply)
-            <div class="hint">
-              Maksimal 3 tombol. Kosongkan kalau tidak perlu.
-            </div>
-            <div class="stack-3">
-              <input type="text" id="tpl_btn1" placeholder="Contoh: YES" />
-              <input type="text" id="tpl_btn2" placeholder="Contoh: NO" />
-              <input type="text" id="tpl_btn3" placeholder="Contoh: MORE INFO" />
-            </div>
-          </label>
-
-          <div class="button-row">
-            <button id="btnCreateTpl">
-              ✏ Ajukan Template
-            </button>
-            <button type="button" class="btn-secondary" onclick="document.getElementById('tplResult').textContent='// Respon pengajuan template akan muncul di sini';">
-              Reset respon
-            </button>
-          </div>
-
-          <div class="output-label">
-            <span class="dot"></span>
-            Respon pengajuan template
-          </div>
-          <pre id="tplResult">// Respon pengajuan template akan muncul di sini</pre>
+          </dl>
+          <p class="mt-3 text-xs text-slate-400">
+            Pastikan template sudah <span class="font-semibold text-slate-200">APPROVED</span> di WhatsApp Manager dan nomor penerima sudah benar.
+          </p>
         </div>
-      </section>
+
+        <div class="rounded-2xl border border-slate-700 bg-slate-900/70 p-4 text-xs text-slate-400 space-y-2">
+          <p class="font-semibold text-slate-200">Catatan format CSV</p>
+          <ul class="list-disc list-inside space-y-1">
+            <li>Tanpa header.</li>
+            <li>Kolom 1: nomor WhatsApp (misal <code>6281234567890</code>).</li>
+            <li>Kolom 2: variabel pertama <code>{{1}}</code> (misal nama orang tua).</li>
+          </ul>
+        </div>
+      </aside>
     </main>
-
-    <footer class="footer-meta">
-      <span>Built for MCKuadrat · WhatsApp Cloud API helper panel.</span>
-      <span>Jika ada error dari Meta, cek pesan di area output, lalu kirim ke dev / admin.</span>
-    </footer>
   </div>
 
   <script>
-    // ===== KONFIGURASI API BACKEND =====
     const API_BASE = "https://api.mckuadrat.com";
-    const BACKEND_BROADCAST_URL = `${API_BASE}/broadcast`;
-    const BACKEND_TEMPLATES_URL = `${API_BASE}/templates`;
-    const BACKEND_CREATE_TEMPLATE_URL = `${API_BASE}/templates/create`;
+    const BACKEND_BROADCAST_URL = API_BASE + "/broadcast";
+    const BACKEND_TEMPLATES_URL = API_BASE + "/templates";
 
-    // ===== LOAD TEMPLATE APPROVED KE DROPDOWN =====
+    let templates = [];
+    let recipients = []; // { phone, var1 }
+
+    // Helper update summary & count
+    function updateRecipientUI() {
+      const count = recipients.length;
+      document.getElementById("recipientCount").textContent = count;
+      document.getElementById("summaryRecipients").textContent = count;
+
+      const listEl = document.getElementById("recipientList");
+      listEl.innerHTML = "";
+
+      if (count === 0) {
+        listEl.classList.add("hidden");
+        return;
+      }
+
+      listEl.classList.remove("hidden");
+
+      recipients.forEach((r, idx) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between rounded-lg bg-slate-900/90 px-2 py-1.5";
+        row.innerHTML = `
+          <div class="text-[11px]">
+            <div class="font-mono text-slate-100">${r.phone}</div>
+            ${r.var1 ? `<div class="text-slate-400">Var1: ${r.var1}</div>` : ""}
+          </div>
+          <button data-idx="${idx}" class="text-[11px] text-red-400 hover:text-red-300">✕</button>
+        `;
+        listEl.appendChild(row);
+      });
+
+      // attach remove handlers
+      Array.from(listEl.querySelectorAll("button[data-idx]")).forEach(btn => {
+        btn.addEventListener("click", () => {
+          const i = parseInt(btn.getAttribute("data-idx"), 10);
+          if (!isNaN(i)) {
+            recipients.splice(i, 1);
+            updateRecipientUI();
+          }
+        });
+      });
+    }
+
+    function updateSummarySchedule() {
+      const val = document.getElementById("schedule").value;
+      const summaryEl = document.getElementById("summarySchedule");
+      const labelEl = document.getElementById("sendBtnLabel");
+
+      if (!val) {
+        summaryEl.textContent = "Segera";
+        labelEl.textContent = "Kirim Broadcast Sekarang";
+        return;
+      }
+      const dt = new Date(val);
+      if (isNaN(dt.getTime())) {
+        summaryEl.textContent = "Segera";
+        labelEl.textContent = "Kirim Broadcast Sekarang";
+        return;
+      }
+      summaryEl.textContent = dt.toLocaleString();
+      labelEl.textContent = "Jadwalkan Broadcast";
+    }
+
+    // Load templates from backend
     async function loadTemplates() {
       const sel = document.getElementById("templateSelect");
-      sel.innerHTML = '<option value="">(memuat template...)</option>';
+      const statusEl = document.getElementById("templateStatus");
+      statusEl.textContent = "Loading...";
 
       try {
-        const res = await fetch(`${BACKEND_TEMPLATES_URL}?status=APPROVED`);
+        const res = await fetch(BACKEND_TEMPLATES_URL + "?status=APPROVED");
         const data = await res.json();
 
         if (data.status !== "ok") {
           sel.innerHTML = '<option value="">Gagal memuat template</option>';
+          statusEl.textContent = "Error";
           console.error("Error templates:", data);
           return;
         }
 
-        const templates = data.templates || [];
-
+        templates = Array.isArray(data.templates) ? data.templates : [];
         if (!templates.length) {
           sel.innerHTML = '<option value="">Tidak ada template APPROVED</option>';
+          statusEl.textContent = "Kosong";
           return;
         }
 
         sel.innerHTML = "";
         templates.forEach(tpl => {
           const opt = document.createElement("option");
-          opt.value = tpl.name; // ini yang dikirim ke WA API
+          opt.value = tpl.name;
           opt.textContent = `${tpl.name} [${tpl.category}/${tpl.language}]`;
           sel.appendChild(opt);
         });
+
+        statusEl.textContent = templates.length + " template";
       } catch (err) {
         console.error(err);
         sel.innerHTML = '<option value="">Error memuat template</option>';
+        statusEl.textContent = "Error";
       }
     }
 
-    document.addEventListener("DOMContentLoaded", loadTemplates);
+    function getTemplateBodyText(tpl) {
+      if (!tpl || !Array.isArray(tpl.components)) return "";
+      const bodyComp = tpl.components.find(c => c.type === "BODY");
+      return bodyComp?.text || "";
+    }
 
-    // ===== KIRIM BROADCAST =====
-    document.getElementById("sendBtn").addEventListener("click", async () => {
-      const fileInput = document.getElementById("csvFile");
-      const templateSelect = document.getElementById("templateSelect");
-      const outputEl = document.getElementById("output");
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTemplates();
 
-      const templateName = templateSelect.value;
-      if (!templateName) {
-        alert("Pilih template dulu.");
-        return;
-      }
+      // Template change -> update preview & summary
+      const selTpl = document.getElementById("templateSelect");
+      const previewEl = document.getElementById("messagePreview");
+      selTpl.addEventListener("change", () => {
+        const name = selTpl.value;
+        const tpl = templates.find(t => t.name === name);
+        previewEl.value = getTemplateBodyText(tpl) || "";
+        document.getElementById("summaryTemplate").textContent = name || "Belum dipilih";
+      });
 
-      if (!fileInput.files.length) {
-        alert("Pilih file CSV dulu.");
-        return;
-      }
+      // Manual add recipient
+      document.getElementById("btnAddRecipient").addEventListener("click", () => {
+        const input = document.getElementById("manualPhone");
+        const phone = input.value.trim();
+        if (!phone) return;
+        if (recipients.some(r => r.phone === phone)) {
+          input.value = "";
+          return;
+        }
+        recipients.push({ phone, var1: "" });
+        input.value = "";
+        updateRecipientUI();
+      });
 
-      const file = fileInput.files[0];
-      const text = await file.text();
+      // Enter key on manual input
+      document.getElementById("manualPhone").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          document.getElementById("btnAddRecipient").click();
+        }
+      });
 
-      const rows = text
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .map(line => {
-          const parts = line.split(",");
-          const phone = (parts[0] || "").trim();
-          const var1  = (parts[1] || "").trim();
-          return { phone, var1 };
-        });
+      // CSV upload trigger
+      document.getElementById("btnUploadCsv").addEventListener("click", () => {
+        document.getElementById("csvFile").click();
+      });
 
-      if (!rows.length) {
-        alert("CSV kosong atau formatnya salah.");
-        return;
-      }
+      document.getElementById("csvFile").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        const infoEl = document.getElementById("csvInfo");
+        if (!file) {
+          infoEl.textContent = "";
+          return;
+        }
+        try {
+          const text = await file.text();
+          const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+          let added = 0;
+          for (const line of lines) {
+            const parts = line.split(",");
+            const phone = (parts[0] || "").trim();
+            const var1  = (parts[1] || "").trim();
+            if (!phone) continue;
+            if (recipients.some(r => r.phone === phone)) continue;
+            recipients.push({ phone, var1 });
+            added++;
+          }
+          infoEl.textContent = `CSV: ${added} nomor baru ditambahkan`;
+          updateRecipientUI();
+        } catch (err) {
+          console.error(err);
+          infoEl.textContent = "Gagal membaca CSV";
+        }
+      });
 
-      outputEl.textContent = "Mengirim ke " + rows.length + " nomor...";
+      // Schedule change
+      document.getElementById("schedule").addEventListener("change", updateSummarySchedule);
 
-      try {
-        const res = await fetch(BACKEND_BROADCAST_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            template_name: templateName,
-            rows
-          })
-        });
+      // Send broadcast
+      document.getElementById("sendBtn").addEventListener("click", async () => {
+        const outputEl = document.getElementById("output");
+        const sel = document.getElementById("templateSelect");
+        const templateName = sel.value;
 
-        const data = await res.json();
-        outputEl.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        console.error(err);
-        outputEl.textContent = "Error: " + err.message;
-      }
-    });
+        if (!templateName) {
+          alert("Pilih template terlebih dahulu.");
+          return;
+        }
+        if (!recipients.length) {
+          alert("Tambahkan minimal satu penerima (manual atau dari CSV).");
+          return;
+        }
 
-    // ===== AJUKAN TEMPLATE BARU =====
-    document.getElementById("btnCreateTpl").addEventListener("click", async () => {
-      const name      = document.getElementById("tpl_name").value.trim();
-      const category  = document.getElementById("tpl_category").value;
-      const body_text = document.getElementById("tpl_body").value.trim();
-      const example_1 = document.getElementById("tpl_example1").value.trim();
-      const footer    = document.getElementById("tpl_footer").value.trim();
-      const btn1      = document.getElementById("tpl_btn1").value.trim();
-      const btn2      = document.getElementById("tpl_btn2").value.trim();
-      const btn3      = document.getElementById("tpl_btn3").value.trim();
-      const outEl     = document.getElementById("tplResult");
+        outputEl.textContent = `Mengirim ke ${recipients.length} nomor...`;
 
-      if (!name || !category || !body_text) {
-        alert("Lengkapi nama, kategori, dan body template.");
-        return;
-      }
+        try {
+          const res = await fetch(BACKEND_BROADCAST_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              template_name: templateName,
+              rows: recipients
+            })
+          });
 
-      const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
-
-      outEl.textContent = "Mengirim permintaan ke server...";
-
-      try {
-        const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            category,
-            body_text,
-            example_1,
-            footer_text: footer,
-            buttons
-          })
-        });
-
-        const data = await res.json();
-        outEl.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        console.error(err);
-        outEl.textContent = "Error: " + err.message;
-      }
+          const data = await res.json();
+          outputEl.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          console.error(err);
+          outputEl.textContent = "Error: " + err.message;
+        }
+      });
     });
   </script>
 </body>
