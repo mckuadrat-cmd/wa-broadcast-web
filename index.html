@@ -149,7 +149,8 @@
   <div class="card">
     <h2>2. Ajukan Template WhatsApp Baru</h2>
     <div class="section-note">
-      Template akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, akan otomatis muncul di dropdown di atas.
+      Template akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, akan otomatis muncul di dropdown di atas.<br>
+      <strong>Language:</strong> English (<code>en_US</code>) – dibuat otomatis.
     </div>
 
     <label>
@@ -167,9 +168,11 @@
     </label>
 
     <label>
-      Bahasa Template
-      <small>Biasanya <code>id</code> untuk Bahasa Indonesia.</small>
-      <input type="text" id="tpl_language" value="id">
+      Type of variable (untuk isi {{1}})
+      <select id="tpl_var_type">
+        <option value="text">Text (nama, kalimat)</option>
+        <option value="number">Number (kode, angka)</option>
+      </select>
     </label>
 
     <label>
@@ -177,15 +180,29 @@
       <small>
         Bisa gunakan placeholder <code>{{1}}</code>, <code>{{2}}</code>, dst.<br>
         Contoh:<br>
-        <code>Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat.</code>
+        <code>Hello {{1}}, here is your test result from MCKuadrat.</code>
       </small>
-      <textarea id="tpl_body" placeholder="Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat."></textarea>
+      <textarea id="tpl_body" placeholder="Hello {{1}}, here is your test result from MCKuadrat."></textarea>
     </label>
 
     <label>
       Contoh isi {{1}} (Sample untuk Meta)
-      <small>Contoh: <code>Bapak/Ibu Ridwan</code></small>
-      <input type="text" id="tpl_example1" placeholder="Bapak/Ibu Ridwan">
+      <small>Contoh: <code>Mr. / Mrs. Ridwan</code> atau <code>123456</code> kalau type Number.</small>
+      <input type="text" id="tpl_example1" placeholder="Mr. / Mrs. Ridwan">
+    </label>
+
+    <label>
+      Footer (optional)
+      <small>Contoh: <code>Powered by MCKuadrat</code> atau catatan singkat lainnya.</small>
+      <input type="text" id="tpl_footer" placeholder="Powered by MCKuadrat">
+    </label>
+
+    <label>
+      Buttons (optional, Quick Reply)
+      <small>Maksimal 3 tombol. Kosongkan kalau tidak perlu.</small>
+      <input type="text" id="tpl_btn1" placeholder="Contoh: YES" />
+      <input type="text" id="tpl_btn2" placeholder="Contoh: NO" style="margin-top:6px;" />
+      <input type="text" id="tpl_btn3" placeholder="Contoh: MORE INFO" style="margin-top:6px;" />
     </label>
 
     <button id="btnCreateTpl">Ajukan Template ke Meta</button>
@@ -293,42 +310,50 @@
       }
     });
 
-    // ===== AJUKAN TEMPLATE BARU =====
-    document.getElementById("btnCreateTpl").addEventListener("click", async () => {
-      const name      = document.getElementById("tpl_name").value.trim();
-      const category  = document.getElementById("tpl_category").value;
-      const language  = document.getElementById("tpl_language").value.trim();
-      const body_text = document.getElementById("tpl_body").value.trim();
-      const example_1 = document.getElementById("tpl_example1").value.trim();
-      const outEl     = document.getElementById("tplResult");
+// ===== AJUKAN TEMPLATE BARU =====
+document.getElementById("btnCreateTpl").addEventListener("click", async () => {
+  const name      = document.getElementById("tpl_name").value.trim();
+  const category  = document.getElementById("tpl_category").value;
+  const body_text = document.getElementById("tpl_body").value.trim();
+  const example_1 = document.getElementById("tpl_example1").value.trim();
+  const footer    = document.getElementById("tpl_footer").value.trim();
+  const btn1      = document.getElementById("tpl_btn1").value.trim();
+  const btn2      = document.getElementById("tpl_btn2").value.trim();
+  const btn3      = document.getElementById("tpl_btn3").value.trim();
+  const outEl     = document.getElementById("tplResult");
 
-      if (!name || !category || !language || !body_text) {
-        alert("Lengkapi nama, kategori, bahasa, dan body template.");
-        return;
-      }
+  if (!name || !category || !body_text) {
+    alert("Lengkapi nama, kategori, dan body template.");
+    return;
+  }
 
-      outEl.textContent = "Mengirim permintaan ke server...";
+  // kumpulkan teks button yang tidak kosong
+  const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
 
-      try {
-        const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            category,
-            language,
-            body_text,
-            example_1
-          })
-        });
+  outEl.textContent = "Mengirim permintaan ke server...";
 
-        const data = await res.json();
-        outEl.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        console.error(err);
-        outEl.textContent = "Error: " + err.message;
-      }
+  try {
+    const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        category,
+        // language dikunci di backend ke en_US
+        body_text,
+        example_1,
+        footer_text: footer,
+        buttons
+      })
     });
-  </script>
+
+    const data = await res.json();
+    outEl.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    outEl.textContent = "Error: " + err.message;
+  }
+});
+</script>
 </body>
 </html>
