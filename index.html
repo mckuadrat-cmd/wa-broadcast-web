@@ -4,210 +4,563 @@
   <meta charset="UTF-8" />
   <title>MCKuadrat WA Broadcast</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Optional: Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #020617;
+      --card-bg: #020617;
+      --card-border: #1e293b;
+      --primary: #38bdf8;
+      --primary-soft: rgba(56, 189, 248, 0.18);
+      --primary-hover: #0ea5e9;
+      --text-main: #e5e7eb;
+      --text-muted: #94a3b8;
+      --accent: #22c55e;
+      --danger: #f97373;
+      --radius-lg: 18px;
+      --radius-md: 10px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-      background: #f5f5f7;
-      color: #222;
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12) 0, transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.12) 0, transparent 45%),
+        var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px 40px;
     }
-    h1, h2 {
-      margin-top: 0;
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      padding: 24px 20px 32px;
+      border-radius: 26px;
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      backdrop-filter: blur(14px);
     }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
     }
-    h2 {
-      font-size: 1.2rem;
-      margin-top: 2rem;
-      margin-bottom: 0.5rem;
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.85);
     }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .header-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .header-meta span {
+      display: block;
+    }
+
+    .badge-online {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .header-meta {
+        text-align: left;
+      }
+    }
+
     .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 16px 18px;
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-      margin-top: 16px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.12) 0, transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(30,64,175,0.35) 0, transparent 60%),
+                  var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 20px;
+      border: 1px solid var(--card-border);
+      position: relative;
+      overflow: hidden;
     }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        rgba(148, 163, 184, 0.18),
+        transparent 35%,
+        transparent 65%,
+        rgba(148, 163, 184, 0.12));
+      mix-blend-mode: soft-light;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    h2 span.step {
+      font-size: 0.75rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .section-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
     label {
       display: block;
-      margin-top: 0.75rem;
-      font-size: 0.95rem;
+      margin-top: 10px;
+      font-size: 0.82rem;
       font-weight: 500;
+      color: #cbd5f5;
     }
+
+    label .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    label .label-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    label .label-hint {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
     input[type="text"],
     input[type="file"],
     select,
     textarea {
-      margin-top: 0.25rem;
+      margin-top: 5px;
       width: 100%;
       max-width: 100%;
-      box-sizing: border-box;
       padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #d0d7de;
-      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 0.86rem;
       font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
+
+    input[type="file"] {
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+
+    input::file-selector-button {
+      margin-right: 10px;
+      border: none;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 0.8rem;
+      padding: 6px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+      background: #020617;
+    }
+
     textarea {
       resize: vertical;
       min-height: 80px;
     }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
     button {
-      margin-top: 1rem;
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 8px 16px;
+      border-radius: 999px;
       border: none;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.86rem;
       font-weight: 600;
-      background: #2563eb;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: radial-gradient(circle at top left, #38bdf8 0, #0ea5e9 40%, #2563eb 100%);
       color: white;
+      box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
     }
+
     button:hover {
-      background: #1d4ed8;
+      transform: translateY(-1px);
+      filter: brightness(1.07);
+      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.6);
     }
-    small {
-      font-size: 0.8rem;
-      color: #555;
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.8);
     }
-    pre {
-      margin-top: 12px;
-      background: #0f172a;
-      color: #e5e7eb;
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      max-height: 260px;
-      overflow: auto;
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: none;
+      color: var(--text-muted);
+      text-transform: none;
+      letter-spacing: 0.02em;
+      padding: 7px 13px;
     }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #e0f2fe;
-      color: #0369a1;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-left: 4px;
+
+    .btn-secondary:hover {
+      filter: none;
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
     }
-    .section-note {
-      font-size: 0.85rem;
-      color: #555;
+
+    .hint {
+      font-size: 0.74rem;
+      color: var(--text-muted);
       margin-top: 4px;
     }
-    hr {
-      border: none;
-      border-top: 1px dashed #e2e8f0;
-      margin: 24px 0;
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.74rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    pre {
+      margin-top: 12px;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 0.76rem;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+    }
+
+    .output-label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .output-label span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .footer-meta {
+      margin-top: 18px;
+      font-size: 0.7rem;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      opacity: 0.9;
+    }
+
+    .footer-meta a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .stack-3 input[type="text"] {
+      margin-top: 6px;
     }
   </style>
 </head>
 <body>
+  <div class="shell">
+    <header class="header">
+      <div class="header-top">
+        <div class="title-wrap">
+          <div class="pill">MCKuadrat · WhatsApp Cloud API</div>
+          <h1>
+            WA Broadcast Panel
+          </h1>
+          <div class="subtitle">
+            Kirim pesan template & laporan ke banyak nomor lewat satu panel yang rapi.
+          </div>
+        </div>
+        <div class="header-meta">
+          <span><strong>Frontend:</strong> app.mckuadrat.com</span>
+          <span><strong>Backend:</strong> api.mckuadrat.com</span>
+          <span class="badge-online">● API linked & ready</span>
+        </div>
+      </div>
+    </header>
 
-  <h1>MCKuadrat WA Broadcast</h1>
-  <div class="section-note">
-    Tools broadcast WhatsApp via Cloud API<br>
-    <strong>Domain:</strong> app.mckuadrat.com &amp; api.mckuadrat.com
-  </div>
+    <main class="layout">
+      <!-- CARD: Broadcast -->
+      <section class="card">
+        <div class="card-inner">
+          <h2>
+            <span class="step">Step 1</span>
+            Broadcast WhatsApp
+          </h2>
+          <div class="section-note">
+            Pilih template yang sudah <strong>APPROVED</strong>, upload CSV, lalu kirim broadcast dengan aman.
+          </div>
 
-  <!-- CARD: Broadcast -->
-  <div class="card">
-    <h2>1. Broadcast WhatsApp</h2>
-    <div class="section-note">
-      Pilih template yang sudah <strong>APPROVED</strong> di Meta, lalu upload CSV untuk dikirim massal.
-    </div>
+          <label>
+            <div class="label-row">
+              <div class="label-title">
+                Pilih Template WhatsApp
+                <span class="chip">Auto-load dari Meta</span>
+              </div>
+            </div>
+            <select id="templateSelect">
+              <option value="">(memuat template...)</option>
+            </select>
+          </label>
 
-    <label>
-      Pilih Template WhatsApp
-      <span class="badge">Auto load dari Meta</span>
-      <select id="templateSelect">
-        <option value="">(memuat template...)</option>
-      </select>
-    </label>
+          <label>
+            <div class="label-row">
+              <div class="label-title">
+                File CSV
+              </div>
+              <span class="label-hint">Tanpa header</span>
+            </div>
+            <input type="file" id="csvFile" accept=".csv" />
+            <div class="hint">
+              Format: <code>no_wa,var1</code> per baris<br>
+              Contoh:<br>
+              <code>6282312006987,Ridwan Setiawan</code><br>
+              <code>6281234567890,Budi</code>
+            </div>
+          </label>
 
-    <label>
-      File CSV (tanpa header)
-      <input type="file" id="csvFile" accept=".csv" />
-      <small>
-        Format: <code>no_wa,var1</code> per baris<br>
-        Contoh:<br>
-        <code>6282312006987,Ridwan Setiawan</code><br>
-        <code>6281234567890,Budi</code>
-      </small>
-    </label>
+          <div class="button-row">
+            <button id="sendBtn">
+              ⬆ Kirim Broadcast
+            </button>
+            <button type="button" class="btn-secondary" onclick="document.getElementById('output').textContent='// Hasil kirim broadcast akan muncul di sini';">
+              Reset output
+            </button>
+          </div>
 
-    <button id="sendBtn">Kirim Broadcast</button>
+          <div class="output-label">
+            <span class="dot"></span>
+            Hasil kirim broadcast
+          </div>
+          <pre id="output">// Hasil kirim broadcast akan muncul di sini</pre>
+        </div>
+      </section>
 
-    <pre id="output">// Hasil kirim broadcast akan muncul di sini</pre>
-  </div>
+      <!-- CARD: Ajukan Template -->
+      <section class="card">
+        <div class="card-inner">
+          <h2>
+            <span class="step">Step 2</span>
+            Ajukan Template Baru
+          </h2>
+          <div class="section-note">
+            Template baru akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, otomatis muncul di dropdown kiri.<br>
+            <strong>Language:</strong> English (<code>en</code>) – diset otomatis.
+          </div>
 
-  <!-- CARD: Ajukan Template -->
-  <div class="card">
-    <h2>2. Ajukan Template WhatsApp Baru</h2>
-    <div class="section-note">
-      Template akan diajukan ke Meta. Setelah berstatus <strong>APPROVED</strong>, akan otomatis muncul di dropdown di atas.<br>
-      <strong>Language:</strong> English (<code>en</code>) – dibuat otomatis.
-    </div>
+          <label>
+            Nama Template WhatsApp
+            <div class="hint">
+              Huruf kecil + underscore. Contoh: <code>kirim_hasil_test_pesat</code>
+            </div>
+            <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
+          </label>
 
-    <label>
-      Nama Template WhatsApp
-      <small>Huruf kecil + underscore. Contoh: <code>kirim_hasil_test_pesat</code></small>
-      <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
-    </label>
+          <label>
+            Kategori Template
+            <select id="tpl_category">
+              <option value="UTILITY">UTILITY (notifikasi / hasil tes)</option>
+              <option value="MARKETING">MARKETING (promo / open house)</option>
+            </select>
+          </label>
 
-    <label>
-      Kategori Template
-      <select id="tpl_category">
-        <option value="UTILITY">UTILITY (notifikasi / hasil tes)</option>
-        <option value="MARKETING">MARKETING (promo / open house)</option>
-      </select>
-    </label>
+          <label>
+            Body Template
+            <div class="hint">
+              Bisa gunakan placeholder <code>{{1}}</code>, <code>{{2}}</code>, dst.<br>
+              Contoh:<br>
+              <code>Hello {{1}}, here is your test result from MCKuadrat.</code>
+            </div>
+            <textarea id="tpl_body" placeholder="Hello {{1}}, here is your test result from MCKuadrat."></textarea>
+          </label>
 
-    <label>
-      Type of variable (untuk isi {{1}})
-      <select id="tpl_var_type">
-        <option value="text">Text (nama, kalimat)</option>
-        <option value="number">Number (kode, angka)</option>
-      </select>
-    </label>
+          <label>
+            Contoh isi {{1}} (sample untuk Meta)
+            <div class="hint">
+              Contoh: <code>Mr. / Mrs. Ridwan</code> atau <code>Student Name</code>.
+            </div>
+            <input type="text" id="tpl_example1" placeholder="Mr. / Mrs. Ridwan">
+          </label>
 
-    <label>
-      Body Template
-      <small>
-        Bisa gunakan placeholder <code>{{1}}</code>, <code>{{2}}</code>, dst.<br>
-        Contoh:<br>
-        <code>Hello {{1}}, here is your test result from MCKuadrat.</code>
-      </small>
-      <textarea id="tpl_body" placeholder="Hello {{1}}, here is your test result from MCKuadrat."></textarea>
-    </label>
+          <label>
+            Footer (optional)
+            <div class="hint">
+              Contoh: <code>Powered by MCKuadrat</code> atau catatan singkat lain.
+            </div>
+            <input type="text" id="tpl_footer" placeholder="Powered by MCKuadrat">
+          </label>
 
-    <label>
-      Contoh isi {{1}} (Sample untuk Meta)
-      <small>Contoh: <code>Mr. / Mrs. Ridwan</code> atau <code>123456</code> kalau type Number.</small>
-      <input type="text" id="tpl_example1" placeholder="Mr. / Mrs. Ridwan">
-    </label>
+          <label>
+            Buttons (optional · Quick Reply)
+            <div class="hint">
+              Maksimal 3 tombol. Kosongkan kalau tidak perlu.
+            </div>
+            <div class="stack-3">
+              <input type="text" id="tpl_btn1" placeholder="Contoh: YES" />
+              <input type="text" id="tpl_btn2" placeholder="Contoh: NO" />
+              <input type="text" id="tpl_btn3" placeholder="Contoh: MORE INFO" />
+            </div>
+          </label>
 
-    <label>
-      Footer (optional)
-      <small>Contoh: <code>Powered by MCKuadrat</code> atau catatan singkat lainnya.</small>
-      <input type="text" id="tpl_footer" placeholder="Powered by MCKuadrat">
-    </label>
+          <div class="button-row">
+            <button id="btnCreateTpl">
+              ✏ Ajukan Template
+            </button>
+            <button type="button" class="btn-secondary" onclick="document.getElementById('tplResult').textContent='// Respon pengajuan template akan muncul di sini';">
+              Reset respon
+            </button>
+          </div>
 
-    <label>
-      Buttons (optional, Quick Reply)
-      <small>Maksimal 3 tombol. Kosongkan kalau tidak perlu.</small>
-      <input type="text" id="tpl_btn1" placeholder="Contoh: YES" />
-      <input type="text" id="tpl_btn2" placeholder="Contoh: NO" style="margin-top:6px;" />
-      <input type="text" id="tpl_btn3" placeholder="Contoh: MORE INFO" style="margin-top:6px;" />
-    </label>
+          <div class="output-label">
+            <span class="dot"></span>
+            Respon pengajuan template
+          </div>
+          <pre id="tplResult">// Respon pengajuan template akan muncul di sini</pre>
+        </div>
+      </section>
+    </main>
 
-    <button id="btnCreateTpl">Ajukan Template ke Meta</button>
-
-    <pre id="tplResult">// Respon pengajuan template akan muncul di sini</pre>
+    <footer class="footer-meta">
+      <span>Built for MCKuadrat · WhatsApp Cloud API helper panel.</span>
+      <span>Jika ada error dari Meta, cek pesan di area output, lalu kirim ke dev / admin.</span>
+    </footer>
   </div>
 
   <script>
@@ -310,50 +663,48 @@
       }
     });
 
-// ===== AJUKAN TEMPLATE BARU =====
-document.getElementById("btnCreateTpl").addEventListener("click", async () => {
-  const name      = document.getElementById("tpl_name").value.trim();
-  const category  = document.getElementById("tpl_category").value;
-  const body_text = document.getElementById("tpl_body").value.trim();
-  const example_1 = document.getElementById("tpl_example1").value.trim();
-  const footer    = document.getElementById("tpl_footer").value.trim();
-  const btn1      = document.getElementById("tpl_btn1").value.trim();
-  const btn2      = document.getElementById("tpl_btn2").value.trim();
-  const btn3      = document.getElementById("tpl_btn3").value.trim();
-  const outEl     = document.getElementById("tplResult");
+    // ===== AJUKAN TEMPLATE BARU =====
+    document.getElementById("btnCreateTpl").addEventListener("click", async () => {
+      const name      = document.getElementById("tpl_name").value.trim();
+      const category  = document.getElementById("tpl_category").value;
+      const body_text = document.getElementById("tpl_body").value.trim();
+      const example_1 = document.getElementById("tpl_example1").value.trim();
+      const footer    = document.getElementById("tpl_footer").value.trim();
+      const btn1      = document.getElementById("tpl_btn1").value.trim();
+      const btn2      = document.getElementById("tpl_btn2").value.trim();
+      const btn3      = document.getElementById("tpl_btn3").value.trim();
+      const outEl     = document.getElementById("tplResult");
 
-  if (!name || !category || !body_text) {
-    alert("Lengkapi nama, kategori, dan body template.");
-    return;
-  }
+      if (!name || !category || !body_text) {
+        alert("Lengkapi nama, kategori, dan body template.");
+        return;
+      }
 
-  // kumpulkan teks button yang tidak kosong
-  const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
+      const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
 
-  outEl.textContent = "Mengirim permintaan ke server...";
+      outEl.textContent = "Mengirim permintaan ke server...";
 
-  try {
-    const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        category,
-        // language dikunci di backend ke en_US
-        body_text,
-        example_1,
-        footer_text: footer,
-        buttons
-      })
+      try {
+        const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            body_text,
+            example_1,
+            footer_text: footer,
+            buttons
+          })
+        });
+
+        const data = await res.json();
+        outEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        console.error(err);
+        outEl.textContent = "Error: " + err.message;
+      }
     });
-
-    const data = await res.json();
-    outEl.textContent = JSON.stringify(data, null, 2);
-  } catch (err) {
-    console.error(err);
-    outEl.textContent = "Error: " + err.message;
-  }
-});
-</script>
+  </script>
 </body>
 </html>
