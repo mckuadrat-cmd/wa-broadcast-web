@@ -349,11 +349,25 @@
   </main>
 
   <script>
+
+  // ======================
+  // CEK LOGIN SESSION
+  // ======================
+    (function () {
+    const isLoggedIn = localStorage.getItem("sb_logged_in");
+    const school = localStorage.getItem("sb_school");
+
+    if (!isLoggedIn || !school) {
+      // kalau tidak login → lempar balik ke halaman login
+      window.location.href = "/sendblast";
+    }
+    })();
+
     const API_BASE = "https://api.mckuadrat.com";
     const BACKEND_BROADCAST_URL = API_BASE + "/broadcast";
     const BACKEND_TEMPLATES_URL = API_BASE + "/templates";
     const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "/templates/create";
-
+    
     let templates = [];
     let recipients = []; // { phone, var1 }
 
@@ -617,19 +631,6 @@
     const label = SCHOOL_MAP[school] || school;
     const el = document.getElementById("schoolLabel");
     if (el) el.textContent = label;
-  })();
-
-  // ======================
-  // CEK LOGIN SESSION
-  // ======================
-  (function () {
-    const isLoggedIn = localStorage.getItem("sb_logged_in");
-    const school = localStorage.getItem("sb_school");
-
-    if (!isLoggedIn || !school) {
-      // kalau tidak login → lempar balik ke halaman login
-      window.location.href = "/sendblast";
-    }
   })();
 
 function logout() {
