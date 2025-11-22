@@ -617,6 +617,19 @@
     const el = document.getElementById("schoolLabel");
     if (el) el.textContent = label;
   })();
+
+  // ======================
+  // CEK LOGIN SESSION
+  // ======================
+  (function () {
+    const isLoggedIn = localStorage.getItem("sb_logged_in");
+    const school = localStorage.getItem("sb_school");
+
+    if (!isLoggedIn || !school) {
+      // kalau tidak login → lempar balik ke halaman login
+      window.location.href = "/sendblast";
+    }
+  })();
     
   </script>
 </body>
