@@ -47,12 +47,93 @@
 
   <div id="result"></div>
 
+<hr>
+<h2>Ajukan Template WhatsApp Baru</h2>
+<p>Template akan diajukan ke Meta. Setelah APPROVED, baru bisa dipakai untuk broadcast.</p>
+
+<label>
+  Nama Template (huruf kecil + underscore):
+  <input type="text" id="tpl_name" placeholder="kirim_hasil_test_pesat">
+</label>
+<br><br>
+
+<label>
+  Kategori:
+  <select id="tpl_category">
+    <option value="UTILITY">UTILITY (notifikasi, hasil tes)</option>
+    <option value="MARKETING">MARKETING (promo, open house)</option>
+  </select>
+</label>
+<br><br>
+
+<label>
+  Bahasa:
+  <input type="text" id="tpl_language" value="id">
+</label>
+<br><br>
+
+<label>
+  Body Template:
+  <textarea id="tpl_body" rows="4" cols="60"
+    placeholder="Halo {{1}}, berikut hasil tes ananda di Sekolah Pesat.">
+  </textarea>
+</label>
+<br><br>
+
+<label>
+  Contoh isi {{1}} (untuk sample ke Meta):
+  <input type="text" id="tpl_example1" placeholder="Bapak/Ibu Ridwan">
+</label>
+<br><br>
+
+<button id="btnCreateTpl">Ajukan Template ke Meta</button>
+
+<pre id="tplResult" style="margin-top:10px; background:#f4f4f4; padding:10px;"></pre>
+  
 <script>
   const form = document.getElementById('bcForm');
   const resultBox = document.getElementById('result');
   const templateSelect = document.getElementById('templateName');
   const templateInfo = document.getElementById('templateInfo');
   const csvExampleBox = document.getElementById('csvExampleBox');
+
+  const API_BASE = "https://api.mckuadrat.com";
+
+document.getElementById("btnCreateTpl").addEventListener("click", async () => {
+  const name      = document.getElementById("tpl_name").value.trim();
+  const category  = document.getElementById("tpl_category").value;
+  const language  = document.getElementById("tpl_language").value.trim();
+  const body_text = document.getElementById("tpl_body").value.trim();
+  const example_1 = document.getElementById("tpl_example1").value.trim();
+  const outEl     = document.getElementById("tplResult");
+
+  if (!name || !category || !language || !body_text) {
+    alert("Lengkapi nama, kategori, bahasa, dan body template.");
+    return;
+  }
+
+  outEl.textContent = "Mengirim permintaan ke server...";
+
+  try {
+    const res = await fetch(`${API_BASE}/templates/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        category,
+        language,
+        body_text,
+        example_1
+      })
+    });
+
+    const data = await res.json();
+    outEl.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    outEl.textContent = "Error: " + err.message;
+  }
+});
 
   // Konfigurasi template
   const templatesConfig = {
