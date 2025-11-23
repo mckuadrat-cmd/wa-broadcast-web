@@ -347,10 +347,20 @@
       </section>
     </div>
   </main>
+<script>
+  (function () {
+    const logged = localStorage.getItem("sb_logged_in");
+    const school = localStorage.getItem("sb_school");
 
+    if (logged !== "1" || !school) {
+      // belum login → lempar balik ke halaman login
+      window.location.href = "/kirimpesan/";
+    }
+  })();
+</script>
   <script>
 
-    const API_BASE = "https://api.mckuadrat.com";
+    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
     const BACKEND_BROADCAST_URL = API_BASE + "/broadcast";
     const BACKEND_TEMPLATES_URL = API_BASE + "/templates";
     const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "/templates/create";
@@ -627,17 +637,5 @@ function logout() {
 }
     
   </script>
-<script>
-  (function () {
-    const logged = localStorage.getItem("sb_logged_in");
-    const school = localStorage.getItem("sb_school");
-
-    if (logged !== "1" || !school) {
-      // belum login → lempar balik ke halaman login
-      window.location.href = "/kirimpesan/";
-    }
-  })();
-</script>
-
 </body>
 </html>
