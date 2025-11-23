@@ -97,6 +97,34 @@
   </div>
 
   <script>
+  const ACCOUNTS = {
+    "sekolahpesatbogor": {
+      password: "pesat123",
+      schoolId: "sekolahpesatbogor"
+    }
+  };
+
+  function doLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById("username").value.trim().toLowerCase();
+    const p = document.getElementById("password").value;
+
+    const acc = ACCOUNTS[u];
+    if (!acc || acc.password !== p) {
+      alert("Username / password salah");
+      return;
+    }
+
+    // simpan “session”
+    localStorage.setItem("sb_logged_in", "1");
+    localStorage.setItem("sb_school", acc.schoolId);
+
+    // redirect ke dashboard
+    window.location.href = "/kirimpesan/dashboard.html?school=" + encodeURIComponent(acc.schoolId);
+  }
+</script>
+
+  <script>
     // =========================
     // KONFIGURASI AKUN SEKOLAH
     // =========================
@@ -120,7 +148,7 @@
     };
 
     // Base URL dashboard utama
-    const DASHBOARD_BASE = "https://app.mckuadrat.com/kirimpesan";
+    const DASHBOARD_BASE = "https://app.mckuadrat.com/kirimpesan/dashboard.html";
 
     const form = document.getElementById("loginForm");
     const errorBox = document.getElementById("errorBox");
