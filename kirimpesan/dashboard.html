@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCKuadrat WhatsApp API Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mcgreen: "#25D366",
+            mcdark: "#128C7E"
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <!-- Top Bar -->
+  <header class="w-full border-b border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-mcgreen/10">
+          <span class="text-2xl">💬</span>
+        </div>
+        <div>
+          <div class="text-sm font-semibold">WhatsApp API Dashboard</div>
+          <div class="text-xs text-slate-500">Manage templates and broadcast messages</div>
+        </div>
+      </div>
+      <div class="hidden text-sm text-slate-500 sm:block">
+        Hai, <span id="schoolLabel">Sekolah Pesat Bogor</span>
+        <button onclick="logout()" class="text-sm text-red-500 underline">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    <div class="grid gap-4 md:grid-cols-2">
+      <!-- LEFT: Create Template Message -->
+      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-center gap-2">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-mcgreen/10 text-mcgreen">
+            <span class="text-lg">✏️</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold">Create Template Message</h2>
+            <p class="text-xs text-slate-500">
+              Design reusable message templates for WhatsApp Business API
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-sm">
+          <!-- Template Name -->
+          <div class="space-y-1">
+            <label class="font-medium">Template Name <span class="text-red-500">*</span></label>
+            <input
+              id="tpl_name"
+              type="text"
+              placeholder="e.g., order_confirmation"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            />
+            <p class="text-xs text-slate-500">
+              Use lowercase and underscores only
+            </p>
+          </div>
+
+          <!-- Category & Language -->
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="space-y-1">
+              <label class="font-medium">Category</label>
+              <select
+                id="tpl_category"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              >
+                <option value="UTILITY">Utility</option>
+                <option value="MARKETING">Marketing</option>
+                <option value="AUTHENTICATION">Authentication</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="font-medium">Language</label>
+              <input
+                type="text"
+                value="English (en)"
+                disabled
+                class="w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500"
+              />
+            </div>
+          </div>
+
+          <!-- Header (optional) – untuk sekarang cuma None -->
+          <div class="space-y-1">
+            <label class="font-medium">Header (Optional)</label>
+            <select
+              id="tpl_header"
+              disabled
+              class="w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500"
+            >
+              <option>None</option>
+            </select>
+          </div>
+
+          <!-- Body Text -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="font-medium">Body Text <span class="text-red-500">*</span></label>
+              <button
+                type="button"
+                class="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-600"
+                onclick="alert('Gunakan {{1}}, {{2}}, dst langsung di teks body. Tombol ini hanya placeholder visual.')"
+              >
+                + Add Variable
+              </button>
+            </div>
+            <textarea
+              id="tpl_body"
+              rows="5"
+              placeholder="Enter your message template here..."
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            ></textarea>
+            <p class="text-xs text-slate-500">
+              Gunakan {{1}}, {{2}}, {{3}} untuk variabel. Contoh: <span class="font-mono">Hello {{1}}, here is your test result.</span>
+            </p>
+          </div>
+
+          <!-- Example var1 -->
+          <div class="space-y-1">
+            <label class="font-medium">Example for {{1}} (Optional)</label>
+            <input
+              id="tpl_example1"
+              type="text"
+              placeholder="e.g., Mr. / Mrs. Ridwan"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            />
+          </div>
+
+          <!-- Footer -->
+          <div class="space-y-1">
+            <label class="font-medium">Footer (Optional)</label>
+            <input
+              id="tpl_footer"
+              type="text"
+              placeholder="e.g., Powered by MCKuadrat"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            />
+          </div>
+
+          <!-- Buttons -->
+          <div class="space-y-1">
+            <label class="font-medium">Buttons (Optional)</label>
+            <p class="text-xs text-slate-500 mb-1">
+              Quick reply buttons (max 3). Kosongkan jika tidak perlu.
+            </p>
+            <div class="space-y-1">
+              <input
+                id="tpl_btn1"
+                type="text"
+                placeholder="Button 1 · e.g., YES"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              />
+              <input
+                id="tpl_btn2"
+                type="text"
+                placeholder="Button 2 · e.g., NO"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              />
+              <input
+                id="tpl_btn3"
+                type="text"
+                placeholder="Button 3 · e.g., MORE INFO"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              />
+            </div>
+          </div>
+
+          <!-- Submit Template -->
+          <div class="pt-2">
+            <button
+              id="btnCreateTpl"
+              type="button"
+              class="inline-flex w-full items-center justify-center rounded-md bg-mcgreen px-4 py-2 text-sm font-medium text-white hover:bg-mcdark"
+            >
+              Submit for Review
+            </button>
+          </div>
+
+          <!-- Result -->
+          <div class="pt-2">
+            <p class="mb-1 text-xs font-medium text-slate-500">Template API Response</p>
+            <pre
+              id="tplResult"
+              class="max-h-48 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+            >// Respon pengajuan template akan muncul di sini</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Send Broadcast Message -->
+      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-center gap-2">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-mcgreen/10 text-mcgreen">
+            <span class="text-lg">📤</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold">Send Broadcast Message</h2>
+            <p class="text-xs text-slate-500">
+              Send messages to multiple recipients at once
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          <!-- Select Template -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="font-medium">Select Template</label>
+              <span id="templateStatus" class="text-xs text-slate-500">Loading...</span>
+            </div>
+            <select
+              id="templateSelect"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            >
+              <option value="">Choose a template...</option>
+            </select>
+          </div>
+
+          <!-- Message Preview -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="font-medium">Message *</label>
+              <span class="text-xs text-slate-500">
+                Variables: {1} {2} {3}
+              </span>
+            </div>
+            <textarea
+              id="messagePreview"
+              rows="5"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              placeholder="Body template dari Meta akan muncul di sini..."
+              readonly
+            ></textarea>
+          </div>
+
+          <!-- Recipients -->
+          <div class="space-y-2 border-t border-slate-200 pt-3">
+            <div class="flex items-center justify-between">
+              <label class="font-medium">Recipients *</label>
+              <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-600">
+                👥 <span id="recipientCount">0</span>
+              </span>
+            </div>
+
+            <!-- Single add -->
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="manualPhone"
+                type="text"
+                placeholder="Enter phone number (e.g., 6281234567890)"
+                class="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+              />
+              <button
+                id="btnAddRecipient"
+                type="button"
+                class="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium hover:bg-slate-100"
+              >
+                Add
+              </button>
+            </div>
+
+            <!-- CSV upload -->
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input id="csvFile" type="file" accept=".csv" class="hidden" />
+              <button
+                id="btnUploadCsv"
+                type="button"
+                class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium hover:bg-slate-100"
+              >
+                ⬆ Upload CSV File
+              </button>
+              <span id="csvInfo" class="text-xs text-slate-500"></span>
+            </div>
+
+            <!-- Recipient list -->
+            <div
+              id="recipientList"
+              class="mt-1 max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 hidden"
+            ></div>
+          </div>
+
+          <!-- Schedule -->
+          <div class="space-y-1 border-t border-slate-200 pt-3">
+            <label class="font-medium">Schedule (Optional)</label>
+            <input
+              id="schedule"
+              type="datetime-local"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+            />
+            <p class="text-xs text-slate-500">
+              Leave empty to send immediately
+            </p>
+          </div>
+
+          <!-- Summary -->
+          <div class="rounded-md border border-sky-200 bg-sky-50 px-3 py-3 text-xs text-slate-700 space-y-1">
+            <p class="font-semibold text-slate-800">Broadcast Summary</p>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Recipients:</span>
+              <span id="summaryRecipients">0</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Template:</span>
+              <span id="summaryTemplate">Not selected</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Send Time:</span>
+              <span id="summarySchedule">Immediately</span>
+            </div>
+          </div>
+
+          <!-- Send button -->
+          <div class="pt-1">
+            <button
+              id="sendBtn"
+              type="button"
+              class="inline-flex w-full items-center justify-center rounded-md bg-mcgreen px-4 py-2 text-sm font-medium text-white hover:bg-mcdark"
+            >
+              <span id="sendBtnLabel">Send Broadcast Now</span>
+            </button>
+          </div>
+
+          <!-- Output -->
+          <div class="pt-2">
+            <p class="mb-1 text-xs font-medium text-slate-500">Broadcast API Response</p>
+            <pre
+              id="output"
+              class="max-h-48 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+            >// Hasil kirim broadcast akan muncul di sini</pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+
+  // ======================
+  // CEK LOGIN SESSION
+  // ======================
+    (function () {
+    const isLoggedIn = localStorage.getItem("sb_logged_in");
+    const school = localStorage.getItem("sb_school");
+
+    if (!isLoggedIn || !school) {
+      // kalau tidak login → lempar balik ke halaman login
+      window.location.href = "/sendblast";
+    }
+    })();
+
+    const API_BASE = "https://api.mckuadrat.com";
+    const BACKEND_BROADCAST_URL = API_BASE + "/broadcast";
+    const BACKEND_TEMPLATES_URL = API_BASE + "/templates";
+    const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "/templates/create";
+    
+    let templates = [];
+    let recipients = []; // { phone, var1 }
+
+    function updateRecipientUI() {
+      const count = recipients.length;
+      document.getElementById("recipientCount").textContent = count;
+      document.getElementById("summaryRecipients").textContent = count;
+
+      const listEl = document.getElementById("recipientList");
+      listEl.innerHTML = "";
+
+      if (!count) {
+        listEl.classList.add("hidden");
+        return;
+      }
+      listEl.classList.remove("hidden");
+
+      recipients.forEach((r, idx) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between rounded border border-slate-200 bg-white px-2 py-1";
+        row.innerHTML = `
+          <div>
+            <div class="font-mono">${r.phone}</div>
+            ${r.var1 ? `<div class="text-[11px] text-slate-500">Var1: ${r.var1}</div>` : ""}
+          </div>
+          <button data-idx="${idx}" class="text-xs text-red-500 hover:underline">Remove</button>
+        `;
+        listEl.appendChild(row);
+      });
+
+      listEl.querySelectorAll("button[data-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const i = parseInt(btn.getAttribute("data-idx"), 10);
+          if (!isNaN(i)) {
+            recipients.splice(i, 1);
+            updateRecipientUI();
+          }
+        });
+      });
+    }
+
+    function updateSummarySchedule() {
+      const val = document.getElementById("schedule").value;
+      const summaryEl = document.getElementById("summarySchedule");
+      const labelEl = document.getElementById("sendBtnLabel");
+
+      if (!val) {
+        summaryEl.textContent = "Immediately";
+        labelEl.textContent = "Send Broadcast Now";
+        return;
+      }
+      const dt = new Date(val);
+      if (isNaN(dt.getTime())) {
+        summaryEl.textContent = "Immediately";
+        labelEl.textContent = "Send Broadcast Now";
+        return;
+      }
+      summaryEl.textContent = dt.toLocaleString();
+      labelEl.textContent = "Schedule Broadcast";
+    }
+
+    function getTemplateBodyText(tpl) {
+      if (!tpl || !Array.isArray(tpl.components)) return "";
+      const body = tpl.components.find(c => c.type === "BODY");
+      return body?.text || "";
+    }
+
+    async function loadTemplates() {
+      const sel = document.getElementById("templateSelect");
+      const statusEl = document.getElementById("templateStatus");
+      statusEl.textContent = "Loading...";
+
+      try {
+        const res = await fetch(BACKEND_TEMPLATES_URL + "?status=APPROVED");
+        const data = await res.json();
+
+        if (data.status !== "ok") {
+          sel.innerHTML = '<option value="">Failed to load templates</option>';
+          statusEl.textContent = "Error";
+          console.error("Templates error:", data);
+          return;
+        }
+
+        templates = Array.isArray(data.templates) ? data.templates : [];
+        if (!templates.length) {
+          sel.innerHTML = '<option value="">No approved templates</option>';
+          statusEl.textContent = "Empty";
+          return;
+        }
+
+        sel.innerHTML = "";
+        templates.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.name;
+          opt.textContent = `${t.name} [${t.category}/${t.language}]`;
+          sel.appendChild(opt);
+        });
+        statusEl.textContent = templates.length + " templates";
+      } catch (err) {
+        console.error(err);
+        sel.innerHTML = '<option value="">Error loading templates</option>';
+        statusEl.textContent = "Error";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTemplates();
+
+      // Template change
+      const selTpl = document.getElementById("templateSelect");
+      const previewEl = document.getElementById("messagePreview");
+      selTpl.addEventListener("change", () => {
+        const name = selTpl.value;
+        const tpl = templates.find(t => t.name === name);
+        previewEl.value = getTemplateBodyText(tpl) || "";
+        document.getElementById("summaryTemplate").textContent = name || "Not selected";
+      });
+
+      // Manual add recipient
+      document.getElementById("btnAddRecipient").addEventListener("click", () => {
+        const input = document.getElementById("manualPhone");
+        const phone = input.value.trim();
+        if (!phone) return;
+        if (recipients.some(r => r.phone === phone)) {
+          input.value = "";
+          return;
+        }
+        recipients.push({ phone, var1: "" });
+        input.value = "";
+        updateRecipientUI();
+      });
+
+      document.getElementById("manualPhone").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          document.getElementById("btnAddRecipient").click();
+        }
+      });
+
+      // CSV upload
+      document.getElementById("btnUploadCsv").addEventListener("click", () => {
+        document.getElementById("csvFile").click();
+      });
+
+      document.getElementById("csvFile").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        const infoEl = document.getElementById("csvInfo");
+        if (!file) {
+          infoEl.textContent = "";
+          return;
+        }
+        try {
+          const text = await file.text();
+          const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+          let added = 0;
+          for (const line of lines) {
+            const parts = line.split(",");
+            const phone = (parts[0] || "").trim();
+            const var1  = (parts[1] || "").trim();
+            if (!phone) continue;
+            if (recipients.some(r => r.phone === phone)) continue;
+            recipients.push({ phone, var1 });
+            added++;
+          }
+          infoEl.textContent = `${added} new recipients from CSV`;
+          updateRecipientUI();
+        } catch (err) {
+          console.error(err);
+          infoEl.textContent = "Failed to read CSV";
+        }
+      });
+
+      // Schedule
+      document.getElementById("schedule").addEventListener("change", updateSummarySchedule);
+
+      // Send broadcast
+      document.getElementById("sendBtn").addEventListener("click", async () => {
+        const outputEl = document.getElementById("output");
+        const sel = document.getElementById("templateSelect");
+        const templateName = sel.value;
+
+        if (!templateName) {
+          alert("Please select a template.");
+          return;
+        }
+        if (!recipients.length) {
+          alert("Add at least one recipient.");
+          return;
+        }
+
+        outputEl.textContent = `Sending to ${recipients.length} recipients...`;
+
+        try {
+          const res = await fetch(BACKEND_BROADCAST_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              template_name: templateName,
+              rows: recipients
+            })
+          });
+          const data = await res.json();
+          outputEl.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          console.error(err);
+          outputEl.textContent = "Error: " + err.message;
+        }
+      });
+
+      // Create template
+      document.getElementById("btnCreateTpl").addEventListener("click", async () => {
+        const name      = document.getElementById("tpl_name").value.trim();
+        const category  = document.getElementById("tpl_category").value;
+        const body_text = document.getElementById("tpl_body").value.trim();
+        const example_1 = document.getElementById("tpl_example1").value.trim();
+        const footer    = document.getElementById("tpl_footer").value.trim();
+        const btn1      = document.getElementById("tpl_btn1").value.trim();
+        const btn2      = document.getElementById("tpl_btn2").value.trim();
+        const btn3      = document.getElementById("tpl_btn3").value.trim();
+        const outEl     = document.getElementById("tplResult");
+
+        if (!name || !category || !body_text) {
+          alert("Template name, category, dan body wajib diisi.");
+          return;
+        }
+
+        const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
+        outEl.textContent = "Submitting template to Meta...";
+
+        try {
+          const res = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              category,
+              body_text,
+              example_1,
+              footer_text: footer,
+              buttons
+            })
+          });
+          const data = await res.json();
+          outEl.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          console.error(err);
+          outEl.textContent = "Error: " + err.message;
+        }
+      });
+    });
+
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const school = params.get("school") || "sekolahpesatbogor";
+
+    const SCHOOL_MAP = {
+      "sekolahpesatbogor": "Sekolah Pesat Bogor",
+      // nanti kalau nambah sekolah tinggal tambah di sini
+    };
+
+    const label = SCHOOL_MAP[school] || school;
+    const el = document.getElementById("schoolLabel");
+    if (el) el.textContent = label;
+  })();
+
+function logout() {
+  localStorage.removeItem("sb_logged_in");
+  localStorage.removeItem("sb_school");
+  window.location.href = "/sendblast";
+}
+    
+  </script>
+</body>
+</html>
