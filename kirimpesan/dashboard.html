@@ -130,7 +130,6 @@
               <button
                 type="button"
                 class="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-600"
-                onclick="alert('Gunakan {{1}}, {{2}}, dst langsung di teks body. Tombol ini hanya placeholder visual.')"
               >
                 + Add Variable
               </button>
@@ -230,6 +229,20 @@
               Send messages to multiple recipients at once
             </p>
           </div>
+        </div>
+
+        <!-- Sender Number -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <label class="font-medium">Sender Number</label>
+            <span class="text-xs text-slate-500">Nomor WA Business</span>
+          </div>
+          <select
+            id="senderSelect"
+            class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+          >
+            <!-- opsi diisi dari JS -->
+          </select>
         </div>
 
         <div class="space-y-4 text-sm">
@@ -365,10 +378,45 @@
   </main>
 
   <script>
-    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
+    const API_BASE = "https://api.mckuadrat.com";
     const BACKEND_BROADCAST_URL       = API_BASE + "broadcast";
     const BACKEND_TEMPLATES_URL       = API_BASE + "templates";
     const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "templates/create";
+
+    // Daftar nomor pengirim yang tersedia
+const SENDER_NUMBERS = [
+  {
+    id: "PRIMARY",           // ID internal dulu, backend nanti bisa map ke PHONE_NUMBER_ID
+    label: "WABA 1 - Sekolah Pesat Bogor"
+  }
+  // Bisa tambah lagi:
+  // { id: "SMK", label: "WABA 2 - SMK Pesat Depok" }
+];
+
+let currentSenderId =
+  localStorage.getItem("sb_sender_id") || (SENDER_NUMBERS[0] && SENDER_NUMBERS[0].id) || null;
+
+function initSenderSelect() {
+  const sel = document.getElementById("senderSelect");
+  if (!sel) return;
+
+  sel.innerHTML = "";
+  SENDER_NUMBERS.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
+  });
+
+  if (currentSenderId) {
+    sel.value = currentSenderId;
+  }
+
+  sel.addEventListener("change", () => {
+    currentSenderId = sel.value;
+    localStorage.setItem("sb_sender_id", currentSenderId);
+  });
+}
 
     let templates = [];
     let recipients = []; // { phone, var1 }
@@ -505,8 +553,43 @@
       }
     }
 
+    function getNextVarIndexFromText(text) {
+  const re = /\{\{(\d+)\}\}/g;
+  let max = 0;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const n = parseInt(m[1], 10);
+    if (!isNaN(n) && n > max) max = n;
+  }
+  return max + 1; // kalau belum ada → 1
+}
+
+function initAddVariableButton() {
+  const btn = document.getElementById("btnAddVariable");
+  const ta  = document.getElementById("tpl_body");
+  if (!btn || !ta) return;
+
+  btn.addEventListener("click", () => {
+    const text = ta.value || "";
+    const nextIndex = getNextVarIndexFromText(text);
+
+    const insertStr = `{{${nextIndex}}}`;
+
+    const start = ta.selectionStart ?? text.length;
+    const end   = ta.selectionEnd   ?? text.length;
+
+    ta.value = text.slice(0, start) + insertStr + text.slice(end);
+    ta.focus();
+    const caretPos = start + insertStr.length;
+    ta.selectionStart = caretPos;
+    ta.selectionEnd   = caretPos;
+  });
+}
+
     document.addEventListener("DOMContentLoaded", () => {
       loadTemplates();
+      initSenderSelect();
+      initAddVariableButton();
 
       const selTpl = document.getElementById("templateSelect");
       const previewEl = document.getElementById("messagePreview");
@@ -584,6 +667,23 @@
           alert("Add at least one recipient.");
           return;
         }
+
+        const bodyPayload = {
+          template_name: templateName,
+          rows: recipients
+        };
+        
+        // kalau suatu saat backend sudah pakai sender_id, dia siap dipakai
+        if (currentSenderId) {
+          bodyPayload.sender_id = currentSenderId;
+        }
+        
+        const res = await fetch(BACKEND_BROADCAST_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyPayload)
+        });
+
 
         outputEl.textContent = `Sending to ${recipients.length} recipients...`;
 
