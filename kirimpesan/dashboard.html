@@ -640,5 +640,10 @@ function logout() {
 }
     
   </script>
+
+  if (sessionStorage.getItem("logged") !== "true") {
+  window.location.href = "/kirimpesan/login.html";
+}
+
 </body>
 </html>
