@@ -353,15 +353,18 @@
   // ======================
   // CEK LOGIN SESSION
   // ======================
-    (function () {
-    const isLoggedIn = localStorage.getItem("sb_logged_in");
-    const school = localStorage.getItem("sb_school");
+function login() {
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
 
-    if (!isLoggedIn || !school) {
-      // kalau tidak login → lempar balik ke halaman login
-      window.location.href = "/sendblast";
-    }
-    })();
+  if (user === "sekolahpesatbogor" && pass === "password123") {
+    sessionStorage.setItem("logged", "true");
+    sessionStorage.setItem("school", user);
+    window.location.href = `/kirimpesan/?school=${user}`;
+  } else {
+    alert("Username / password salah");
+  }
+}
 
     const API_BASE = "https://api.mckuadrat.com";
     const BACKEND_BROADCAST_URL = API_BASE + "/broadcast";
@@ -636,7 +639,7 @@
 function logout() {
   localStorage.removeItem("sb_logged_in");
   localStorage.removeItem("sb_school");
-  window.location.href = "/sendblast";
+  window.location.href = "/kirimpesan";
 }
     
   </script>
