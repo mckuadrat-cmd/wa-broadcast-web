@@ -396,6 +396,78 @@
               </button>
             </div>
 
+            <!-- FOLLOW-UP / CUSTOM MESSAGE (WEBHOOK HELPER) -->
+            <div class="mt-6 border-t border-slate-200 pt-4">
+              <div class="mb-2 flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Send Custom Message (Follow-up)</h3>
+                <span class="text-[11px] text-slate-500">Untuk testing/webhook</span>
+              </div>
+            
+              <div class="space-y-3 text-sm">
+                <div class="space-y-1">
+                  <label class="font-medium">Phone (WhatsApp)</label>
+                  <input
+                    id="followPhone"
+                    type="text"
+                    placeholder="62812xxxxxxx"
+                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  />
+                </div>
+            
+                <div class="space-y-1">
+                  <label class="font-medium">Message Text</label>
+                  <textarea
+                    id="followText"
+                    rows="3"
+                    placeholder="Pesan lanjutan setelah user klik quick reply..."
+                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  ></textarea>
+                </div>
+            
+                <div class="space-y-1">
+                  <label class="font-medium">Attachment (optional)</label>
+                  <select
+                    id="followMediaType"
+                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  >
+                    <option value="">No attachment</option>
+                    <option value="document">Document (PDF, etc)</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                  </select>
+                  <input
+                    id="followMediaLink"
+                    type="text"
+                    placeholder="Link file (misal: link Google Drive / CDN). Kosongkan jika tidak ada."
+                    class="mt-1 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  />
+                  <p class="text-[11px] text-slate-500">
+                    WhatsApp hanya menerima file via <span class="font-mono">link</span>. 
+                    Untuk upload dari komputer, unggah dulu ke Google Drive/hosting, lalu paste link di sini.
+                  </p>
+                </div>
+            
+                <div class="pt-1">
+                  <button
+                    id="followSendBtn"
+                    type="button"
+                    class="inline-flex w-full items-center justify-center rounded-md bg-[#f7542e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04825] transition"
+                  >
+                    Send Custom Message
+                  </button>
+                </div>
+            
+                <div class="pt-1">
+                  <p class="mb-1 text-xs font-medium text-slate-500">Custom Message Response</p>
+                  <pre
+                    id="followOutput"
+                    class="max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+                  >// Hasil kirim custom message akan muncul di sini</pre>
+                </div>
+              </div>
+            </div>
+
             <!-- Output -->
             <div class="pt-2">
               <p class="mb-1 text-xs font-medium text-slate-500">Broadcast API Response</p>
@@ -788,6 +860,60 @@
       currentMaxVar = getMaxVarIndexFromText(bodyText);
       renderManualVarInputs(currentMaxVar);
     });
+
+    // SEND CUSTOM FOLLOW-UP MESSAGE
+    document
+      .getElementById("followSendBtn")
+      .addEventListener("click", async () => {
+        const phone = document.getElementById("followPhone").value.trim();
+        const text  = document.getElementById("followText").value.trim();
+        const mType = document.getElementById("followMediaType").value;
+        const mLink = document.getElementById("followMediaLink").value.trim();
+        const outEl = document.getElementById("followOutput");
+
+        if (!phone) {
+          alert("Nomor WhatsApp (phone) wajib diisi.");
+          return;
+        }
+        if (!text && !mType) {
+          alert("Isi minimal text atau pilih attachment.");
+          return;
+        }
+
+        const payload = { to: phone };
+
+        if (text) payload.text = text;
+        if (mType && mLink) {
+          payload.media = {
+            type: mType,
+            link: mLink
+          };
+        }
+
+        outEl.textContent = "Sending custom message...";
+        showToast("Sending", "Sending custom message...", "📨", 3000);
+
+        try {
+          const res = await fetch(API_BASE + "custom", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          outEl.textContent = JSON.stringify(data, null, 2);
+
+          if (res.ok && data.status === "ok") {
+            showToast("Success", "Custom message sent.", "✅", 2500);
+          } else {
+            showToast("Error", "Custom message error. Cek detail.", "⚠️", 4000);
+          }
+        } catch (err) {
+          console.error(err);
+          outEl.textContent = "Error: " + err.message;
+          showToast("Error", "Custom message error: " + err.message, "⚠️", 4000);
+        }
+      });
+
 
     // Manual add recipient (nomor manual + var manual)
     document
