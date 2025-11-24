@@ -482,16 +482,35 @@
       // =============== SENDER NUMBERS (PHONE_NUMBER WABA) =================
       // GANTI daftar ini pakai phone_number yang terdaftar di WABA-mu
       // id bebas (untuk backend), phone = nomor persis di WA Manager
-      const SENDER_PHONES = [
-        {
-          id: "PRIMARY",
-          phone: "6285129120664",
-          label: "+62 851-2912-0664 — Sekolah Pesat Bogor"
-        }
-        // contoh tambah:
-        // { id: "SMP", phone: "6285xxxx", label: "+62 85xx — Humas SMP" }
-      ];
+      let SENDER_PHONES = [];
       
+      async function loadSenderPhones() {
+        const sel = document.getElementById("senderSelect");
+        sel.innerHTML = "<option>Loading...</option>";
+      
+        try {
+          const r = await fetch(API_BASE + "senders");
+          const data = await r.json();
+      
+          if (data.status !== "ok") {
+            sel.innerHTML = "<option>Error loading numbers</option>";
+            return;
+          }
+      
+          SENDER_PHONES = data.senders;
+      
+          sel.innerHTML = "";
+          SENDER_PHONES.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = `${p.phone} — ${p.verified_name}`;
+            sel.appendChild(opt);
+          });
+        } catch (e) {
+          sel.innerHTML = "<option>Error</option>";
+        }
+      }
+     
       let currentSenderId =
         localStorage.getItem("sb_sender_id") ||
         (SENDER_PHONES[0] && SENDER_PHONES[0].id) ||
@@ -758,10 +777,11 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       loadTemplates();
+      loadSenderPhones();
       initSenderSelect();
       initAddVariableButton();
       refreshExampleInputs();
-
+    
       // Template change
       const selTpl = document.getElementById("templateSelect");
       const previewEl = document.getElementById("messagePreview");
