@@ -345,19 +345,13 @@
                 class="mt-1 max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 hidden"
               ></div>
 
-              <!-- Manual variables (global, berlaku untuk semua penerima tanpa var1 di CSV) -->
+              <!-- Manual variables (untuk penerima yang diinput manual) -->
               <div class="mt-2 space-y-1 border-t border-slate-200 pt-3">
                 <label class="font-medium">Manual Variables (Optional)</label>
                 <p class="text-xs text-slate-500">
-                  Nilai ini akan dipakai sebagai {{1}} untuk semua penerima yang tidak punya var1 di file CSV.
+                  Diisi kalau kamu menambah nomor manual di atas. Jumlah kolom akan mengikuti jumlah {{n}} di template.
                 </p>
-                <input
-                  id="globalVar1"
-                  type="text"
-                  placeholder="Contoh nilai untuk {{1}} (misal: Bapak/Ibu Orang Tua/Wali)"
-                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
-                />
-              </div>
+                <div id="manualVarsContainer" class="space-y-1 text-xs"></div>
             </div>
 
             <!-- Schedule -->
