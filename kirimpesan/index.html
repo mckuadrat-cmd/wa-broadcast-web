@@ -69,16 +69,6 @@
           </button>
         </form>
 
-        <!-- INFO -->
-        <div class="mt-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-500">
-          <p class="font-semibold text-slate-600 mb-1">Info akun sementara:</p>
-          <ul class="list-disc list-inside space-y-0.5">
-            <li><span class="font-mono">username:</span> <span class="font-mono">sekolahpesatbogor</span></li>
-            <li><span class="font-mono">password:</span> <span class="font-mono">pesat123</span></li>
-          </ul>
-        </div>
-      </div>
-
       <p class="mt-3 text-center text-[11px] text-slate-500">
         Powered by MCKuadrat · WhatsApp Cloud API
       </p>
@@ -86,6 +76,17 @@
   </div>
 
 <script>
+  /* =========================
+   KONFIGURASI AKUN SEKOLAH
+   ========================= */
+const ACCOUNTS = {
+  "sekolahpesatbogor": {
+    password: "pesat123",
+    schoolId: "sekolahpesatbogor",
+    displayName: "Sekolah Pesat Bogor"
+  }
+};
+  
 // Base dashboard
 const DASHBOARD_URL = "/kirimpesan/dashboard.html";
 
