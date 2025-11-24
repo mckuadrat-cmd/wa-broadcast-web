@@ -29,7 +29,6 @@
       const logged = localStorage.getItem("sb_logged_in");
       const school = localStorage.getItem("sb_school");
 
-      // kalau belum login / nggak ada info sekolah → balikin ke halaman login
       if (logged !== "1" || !school) {
         window.location.href = "/kirimpesan/";
       }
@@ -233,7 +232,7 @@
         </div>
 
         <!-- Sender Number -->
-        <div class="space-y-1">
+        <div class="space-y-1 mb-3">
           <div class="flex items-center justify-between">
             <label class="font-medium">Sender Number</label>
             <span class="text-xs text-slate-500">Nomor WA Business</span>
@@ -242,8 +241,17 @@
             id="senderSelect"
             class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
           >
-            <!-- opsi diisi dari JS -->
+            <option value="">Loading...</option>
           </select>
+          <div class="mt-1 flex justify-end">
+            <button
+              id="btnAddSender"
+              type="button"
+              class="text-xs text-slate-500 underline"
+            >
+              + Add phone number (local)
+            </button>
+          </div>
         </div>
 
         <div class="space-y-4 text-sm">
@@ -379,69 +387,29 @@
   </main>
 
   <script>
-    // API base di Railway, sudah diprefix /kirimpesan
-    const API_BASE = "https://api.mckuadrat.com/kirimpesan";
-    const BACKEND_BROADCAST_URL       = API_BASE + "/broadcast";
-    const BACKEND_TEMPLATES_URL       = API_BASE + "/templates";
-    const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "/templates/create";
-
-    // =============== SENDER NUMBERS (PHONE_NUMBER WABA) =================
-    // GANTI daftar ini pakai phone_number yang terdaftar di WABA-mu
-    const SENDER_PHONES = [
-      {
-        phone: "6285129120664",
-        label: "6285129120664 - Sekolah Pesat Bogor"
-      }
-      // contoh tambah lagi:
-      // { phone: "628xxxxxxx", label: "628xxxxxxx - Humas SMP" }
-    ];
-
-    let currentSenderPhone =
-      localStorage.getItem("sb_sender_phone") ||
-      (SENDER_PHONES[0] && SENDER_PHONES[0].phone) ||
-      "";
-
-    function initSenderSelect() {
-      const sel = document.getElementById("senderSelect");
-      if (!sel) return;
-
-      sel.innerHTML = "";
-      SENDER_PHONES.forEach((s) => {
-        const opt = document.createElement("option");
-        opt.value = s.phone;
-        opt.textContent = s.label;
-        sel.appendChild(opt);
-      });
-
-      if (currentSenderPhone) {
-        sel.value = currentSenderPhone;
-      }
-
-      sel.addEventListener("change", () => {
-        currentSenderPhone = sel.value;
-        localStorage.setItem("sb_sender_phone", currentSenderPhone);
-      });
-    }
+    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
+    const BACKEND_BROADCAST_URL       = API_BASE + "broadcast";
+    const BACKEND_TEMPLATES_URL       = API_BASE + "templates";
+    const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "templates/create";
+    const BACKEND_SENDERS_URL         = API_BASE + "senders";
 
     let templates = [];
     let recipients = []; // { phone, var1 }
+    let SENDER_PHONES = [];
+    let currentSender = null; // {phone_number_id, phone, name}
 
-    /* =========================
-       LABEL SEKOLAH + SINKRON URL
-       ========================= */
+    // ==================== LABEL SEKOLAH & URL ====================
     (function () {
       const storedSchool = localStorage.getItem("sb_school") || "sekolahpesatbogor";
 
       const SCHOOL_MAP = {
         "sekolahpesatbogor": "Sekolah Pesat Bogor"
-        // nanti tambah sekolah lain di sini
       };
 
       const label = SCHOOL_MAP[storedSchool] || storedSchool;
       const el = document.getElementById("schoolLabel");
       if (el) el.textContent = label;
 
-      // sinkronkan query ?school=... dengan session
       const params = new URLSearchParams(window.location.search);
       if (params.get("school") !== storedSchool) {
         params.set("school", storedSchool);
@@ -456,6 +424,64 @@
       window.location.href = "/kirimpesan/";
     }
 
+    // ==================== SENDER (PHONE NUMBER) ====================
+    async function loadSenders() {
+      const sel = document.getElementById("senderSelect");
+      sel.innerHTML = '<option value="">Loading...</option>';
+
+      try {
+        const res = await fetch(BACKEND_SENDERS_URL);
+        const data = await res.json();
+
+        if (data.status !== "ok") {
+          sel.innerHTML = '<option value="">Failed to load senders</option>';
+          console.error("Senders error:", data);
+          return;
+        }
+
+        SENDER_PHONES = data.senders || [];
+
+        sel.innerHTML = "";
+        SENDER_PHONES.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.phone_number_id;
+          opt.textContent = `${s.phone} – ${s.name}`;
+          sel.appendChild(opt);
+        });
+
+        const lastId = localStorage.getItem("sb_sender_phone_id");
+        const defaultId =
+          (lastId && SENDER_PHONES.some(s => s.phone_number_id === lastId))
+            ? lastId
+            : (SENDER_PHONES[0] && SENDER_PHONES[0].phone_number_id);
+
+        if (defaultId) {
+          sel.value = defaultId;
+          currentSender = SENDER_PHONES.find(s => s.phone_number_id === defaultId) || null;
+          localStorage.setItem("sb_sender_phone_id", defaultId);
+        }
+      } catch (err) {
+        console.error(err);
+        sel.innerHTML = '<option value="">Error loading senders</option>';
+      }
+    }
+
+    function initSenderSelect() {
+      const sel = document.getElementById("senderSelect");
+      if (!sel) return;
+
+      loadSenders();
+
+      sel.addEventListener("change", () => {
+        const id = sel.value;
+        currentSender = SENDER_PHONES.find(s => s.phone_number_id === id) || null;
+        if (currentSender) {
+          localStorage.setItem("sb_sender_phone_id", currentSender.phone_number_id);
+        }
+      });
+    }
+
+    // ==================== RECIPIENT UI ====================
     function updateRecipientUI() {
       const count = recipients.length;
       document.getElementById("recipientCount").textContent = count;
@@ -514,6 +540,7 @@
       labelEl.textContent = "Schedule Broadcast";
     }
 
+    // ==================== TEMPLATE (BODY PREVIEW) ====================
     function getTemplateBodyText(tpl) {
       if (!tpl || !Array.isArray(tpl.components)) return "";
       const body = tpl.components.find(c => c.type === "BODY");
@@ -558,7 +585,7 @@
       }
     }
 
-    // ====== Add Variable ({{1}}, {{2}}, ...) ======
+    // ==================== ADD VARIABLE BUTTON ====================
     function getNextVarIndexFromText(text) {
       const re = /\{\{(\d+)\}\}/g;
       let max = 0;
@@ -567,7 +594,7 @@
         const n = parseInt(m[1], 10);
         if (!isNaN(n) && n > max) max = n;
       }
-      return max + 1; // kalau belum ada → 1
+      return max + 1;
     }
 
     function initAddVariableButton() {
@@ -591,20 +618,43 @@
       });
     }
 
+    // ==================== DOMContentLoaded ====================
     document.addEventListener("DOMContentLoaded", () => {
-      initSenderSelect();
       loadTemplates();
+      initSenderSelect();
       initAddVariableButton();
 
-      const selTpl = document.getElementById("templateSelect");
+      // Template change
+      const selTpl   = document.getElementById("templateSelect");
       const previewEl = document.getElementById("messagePreview");
       selTpl.addEventListener("change", () => {
         const name = selTpl.value;
-        const tpl = templates.find(t => t.name === name);
+        const tpl  = templates.find(t => t.name === name);
         previewEl.value = getTemplateBodyText(tpl) || "";
         document.getElementById("summaryTemplate").textContent = name || "Not selected";
       });
 
+      // Add Sender (local only)
+      const btnAddSender = document.getElementById("btnAddSender");
+      if (btnAddSender) {
+        btnAddSender.addEventListener("click", () => {
+          const phone = prompt("Masukkan nomor WA (harus sudah terdaftar di WABA):");
+          if (!phone) return;
+          const name = prompt("Nama/label untuk nomor ini:", phone) || phone;
+
+          const sel = document.getElementById("senderSelect");
+          const opt = document.createElement("option");
+          opt.value = phone;
+          opt.textContent = `${phone} – ${name}`;
+          sel.appendChild(opt);
+          sel.value = phone;
+
+          currentSender = { phone_number_id: phone, phone, name };
+          localStorage.setItem("sb_sender_phone_id", phone);
+        });
+      }
+
+      // Manual add recipient
       document.getElementById("btnAddRecipient").addEventListener("click", () => {
         const input = document.getElementById("manualPhone");
         const phone = input.value.trim();
@@ -625,6 +675,7 @@
         }
       });
 
+      // CSV upload
       document.getElementById("btnUploadCsv").addEventListener("click", () => {
         document.getElementById("csvFile").click();
       });
@@ -657,11 +708,13 @@
         }
       });
 
+      // Schedule
       document.getElementById("schedule").addEventListener("change", updateSummarySchedule);
 
+      // Send broadcast
       document.getElementById("sendBtn").addEventListener("click", async () => {
         const outputEl = document.getElementById("output");
-        const sel = document.getElementById("templateSelect");
+        const sel      = document.getElementById("templateSelect");
         const templateName = sel.value;
 
         if (!templateName) {
@@ -677,9 +730,12 @@
 
         const bodyPayload = {
           template_name: templateName,
-          rows: recipients,
-          sender_phone: currentSenderPhone || null
+          rows: recipients
         };
+
+        if (currentSender && currentSender.phone_number_id) {
+          bodyPayload.phone_number_id = currentSender.phone_number_id;
+        }
 
         try {
           const res = await fetch(BACKEND_BROADCAST_URL, {
@@ -695,6 +751,7 @@
         }
       });
 
+      // Create template
       document.getElementById("btnCreateTpl").addEventListener("click", async () => {
         const name      = document.getElementById("tpl_name").value.trim();
         const category  = document.getElementById("tpl_category").value;
