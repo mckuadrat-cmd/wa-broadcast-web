@@ -419,6 +419,65 @@
     const BACKEND_TEMPLATES_URL       = API_BASE + "templates";
     const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "templates/create";
 
+    // ====== HELPER STATUS BOX & TOAST ======
+    function setStatusBox(elId, type, text) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const base =
+        "rounded-md px-3 py-2 text-[11px] border " +
+        "transition-colors duration-150 ";
+    
+      let extra = "bg-slate-50 border-slate-200 text-slate-600";
+      if (type === "info") {
+        extra = "bg-sky-50 border-sky-200 text-sky-700";
+      } else if (type === "success") {
+        extra = "bg-emerald-50 border-emerald-200 text-emerald-700";
+      } else if (type === "error") {
+        extra = "bg-red-50 border-red-200 text-red-700";
+      }
+    
+      el.className = base + extra;
+      el.textContent = text;
+    }
+    
+    let _toastTimer = null;
+    function showToast(type, title, message) {
+      const wrap = document.getElementById("toast");
+      const inner = document.getElementById("toastInner");
+      const icon = document.getElementById("toastIcon");
+      const tEl = document.getElementById("toastTitle");
+      const mEl = document.getElementById("toastMessage");
+      if (!wrap || !inner || !icon || !tEl || !mEl) return;
+    
+      let bg = "bg-slate-900/90";
+      let ic = "⏳";
+      if (type === "success") {
+        bg = "bg-emerald-600";
+        ic = "✅";
+      } else if (type === "error") {
+        bg = "bg-red-600";
+        ic = "⚠️";
+      } else if (type === "info" || type === "loading") {
+        bg = "bg-sky-600";
+        ic = type === "loading" ? "⏳" : "ℹ️";
+      }
+    
+      inner.className =
+        "flex items-start gap-2 rounded-lg px-4 py-3 text-sm text-white shadow-lg " +
+        bg;
+    
+      icon.textContent = ic;
+      tEl.textContent = title || "";
+      mEl.textContent = message || "";
+    
+      wrap.classList.remove("hidden");
+    
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => {
+        wrap.classList.add("hidden");
+      }, 4000);
+    }
+
     // ====== SENDER NUMBERS (PHONE_NUMBER WABA)  ======
     // DAFTAR TETAP – mengikuti nomor yang terdaftar di WABA.
     const SENDER_PHONES = [
