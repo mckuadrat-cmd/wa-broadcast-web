@@ -478,43 +478,47 @@
       }, 4000);
     }
 
-    // ====== SENDER NUMBERS (PHONE_NUMBER WABA)  ======
-    // DAFTAR TETAP – mengikuti nomor yang terdaftar di WABA.
-    const SENDER_PHONES = [
-      {
-        id: "PRIMARY",
-        phone: "6285129120664",
-        label: "+62 851-2912-0664 — Sekolah Pesat Bogor"
+      <script>
+      // =============== SENDER NUMBERS (PHONE_NUMBER WABA) =================
+      // GANTI daftar ini pakai phone_number yang terdaftar di WABA-mu
+      // id bebas (untuk backend), phone = nomor persis di WA Manager
+      const SENDER_PHONES = [
+        {
+          id: "PRIMARY",
+          phone: "6285129120664",
+          label: "+62 851-2912-0664 — Sekolah Pesat Bogor"
+        }
+        // contoh tambah:
+        // { id: "SMP", phone: "6285xxxx", label: "+62 85xx — Humas SMP" }
+      ];
+      
+      let currentSenderId =
+        localStorage.getItem("sb_sender_id") ||
+        (SENDER_PHONES[0] && SENDER_PHONES[0].id) ||
+        null;
+      
+      function initSenderSelect() {
+        const sel = document.getElementById("senderSelect");
+        if (!sel) return;
+      
+        sel.innerHTML = "";
+        SENDER_PHONES.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.id;      // kirim id ke backend
+          opt.textContent = s.label;
+          sel.appendChild(opt);
+        });
+      
+        if (currentSenderId) {
+          sel.value = currentSenderId;
+        }
+      
+        sel.addEventListener("change", () => {
+          currentSenderId = sel.value;
+          localStorage.setItem("sb_sender_id", currentSenderId);
+        });
       }
-      // Kalau nanti ada nomor lain, tinggal tambah di sini.
-    ];
-
-    let currentSenderId =
-      localStorage.getItem("sb_sender_id") ||
-      (SENDER_PHONES[0] && SENDER_PHONES[0].id) ||
-      null;
-
-    function initSenderSelect() {
-      const sel = document.getElementById("senderSelect");
-      if (!sel) return;
-
-      sel.innerHTML = "";
-      SENDER_PHONES.forEach((s) => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = s.label;
-        sel.appendChild(opt);
-      });
-
-      if (currentSenderId) {
-        sel.value = currentSenderId;
-      }
-
-      sel.addEventListener("change", () => {
-        currentSenderId = sel.value;
-        localStorage.setItem("sb_sender_id", currentSenderId);
-      });
-    }
+      </script>
 
     let templates = [];
     let recipients = []; // { phone, var1 }
@@ -842,6 +846,10 @@
         const sel = document.getElementById("templateSelect");
         const templateName = sel.value;
         const globalVar1 = document.getElementById("globalVar1").value.trim();
+
+        if (currentSenderId) {
+        bodyPayload.sender_id = currentSenderId;   // <— kirim id nomor pengirim
+        }
 
         if (!templateName) {
           alert("Please select a template.");
