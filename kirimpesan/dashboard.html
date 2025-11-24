@@ -208,10 +208,23 @@
           <!-- Result -->
           <div class="pt-2">
             <p class="mb-1 text-xs font-medium text-slate-500">Template API Response</p>
-            <pre
-              id="tplResult"
-              class="max-h-48 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
-            >// Respon pengajuan template akan muncul di sini</pre>
+            
+            <!-- Ringkasan status yang enak dibaca -->
+            <div
+              id="tplStatus"
+              class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
+            >
+              Belum ada pengajuan template.
+            </div>
+            
+            <!-- Detail teknis untuk developer (disembunyikan) -->
+            <details class="mt-1 text-[11px] text-slate-400">
+              <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
+              <pre
+                id="tplResult"
+                class="mt-1 max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+              >// Respon pengajuan template akan muncul di sini</pre>
+            </details>
           </div>
         </div>
       </section>
@@ -379,10 +392,21 @@
           <!-- Output -->
           <div class="pt-2">
             <p class="mb-1 text-xs font-medium text-slate-500">Broadcast API Response</p>
-            <pre
-              id="output"
-              class="max-h-48 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
-            >// Hasil kirim broadcast akan muncul di sini</pre>
+            
+            <div
+              id="bcStatus"
+              class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
+            >
+              Belum ada pengiriman broadcast.
+            </div>
+            
+            <details class="mt-1 text-[11px] text-slate-400">
+              <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
+              <pre
+                id="output"
+                class="mt-1 max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+              >// Hasil kirim broadcast akan muncul di sini</pre>
+            </details>
           </div>
         </div>
       </section>
@@ -859,5 +883,22 @@
         });
     });
   </script>
+
+  <!-- Toast / popup status global -->
+<div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+  <div
+    id="toastInner"
+    class="flex items-start gap-2 rounded-lg bg-slate-900/90 px-4 py-3 text-sm text-white shadow-lg"
+  >
+    <div id="toastIcon" class="mt-0.5 text-lg">⏳</div>
+    <div>
+      <p id="toastTitle" class="text-sm font-semibold">Processing…</p>
+      <p id="toastMessage" class="mt-0.5 text-xs opacity-80">
+        Please wait, do not close this page.
+      </p>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
