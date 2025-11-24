@@ -45,7 +45,7 @@
   <!-- CARD BESAR DASHBOARD -->
   <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
 
-    <!-- Top Bar (sekarang di dalam card) -->
+    <!-- Top Bar (di dalam card) -->
     <header class="w-full border-b border-slate-200 bg-white">
       <div class="mx-auto flex items-center justify-between px-6 py-4">
         <div class="flex items-center gap-3">
@@ -157,7 +157,7 @@
               </p>
             </div>
 
-            <!-- Dynamic examples -->
+            <!-- Dynamic examples (belum di-wire, disiapkan) -->
             <div class="space-y-1">
               <label class="font-medium">Examples for variables (Optional)</label>
               <div id="tpl_examples_container" class="space-y-1 text-xs text-slate-500">
@@ -221,7 +221,7 @@
             <div class="pt-2">
               <p class="mb-1 text-xs font-medium text-slate-500">Template API Response</p>
               
-              <!-- Ringkasan status yang enak dibaca -->
+              <!-- Ringkasan status -->
               <div
                 id="tplStatus"
                 class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
@@ -229,7 +229,7 @@
                 Belum ada pengajuan template.
               </div>
               
-              <!-- Detail teknis untuk developer (disembunyikan) -->
+              <!-- Detail teknis untuk developer -->
               <details class="mt-1 text-[11px] text-slate-400">
                 <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
                 <pre
@@ -255,7 +255,7 @@
             </div>
           </div>
 
-          <!-- Sender Number (fixed list dari WABA, tanpa tombol Add) -->
+          <!-- Sender Number -->
           <div class="mb-4 space-y-1 text-sm">
             <div class="flex items-center justify-between">
               <label class="font-medium">Sender Number</label>
@@ -282,12 +282,12 @@
               </select>
             </div>
 
-            <!-- Message Preview + Quick reply buttons -->
+            <!-- Message Preview -->
             <div class="space-y-1">
               <div class="flex items-center justify-between">
                 <label class="font-medium">Message *</label>
                 <span class="text-xs text-slate-500">
-                  Variables: {1} {2} {3}
+                  Variables: {{1}} {{2}} {{3}} ...
                 </span>
               </div>
               <textarea
@@ -345,13 +345,14 @@
                 class="mt-1 max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 hidden"
               ></div>
 
-              <!-- Manual variables (untuk penerima yang diinput manual) -->
+              <!-- Manual variables (untuk penerima manual) -->
               <div class="mt-2 space-y-1 border-t border-slate-200 pt-3">
                 <label class="font-medium">Manual Variables (Optional)</label>
                 <p class="text-xs text-slate-500">
-                  Diisi kalau kamu menambah nomor manual di atas. Jumlah kolom akan mengikuti jumlah {{n}} di template.
+                  Dipakai untuk penerima yang ditambahkan manual. Jumlah kolom mengikuti jumlah {{n}} di template.
                 </p>
                 <div id="manualVarsContainer" class="space-y-1 text-xs"></div>
+              </div>
             </div>
 
             <!-- Schedule -->
@@ -431,7 +432,9 @@
   const BACKEND_SENDERS_URL         = API_BASE + "senders";
 
   let templates  = [];
-  let recipients = []; // { phone, var1 }
+  let recipients = []; // { phone, var1, var2, ... }
+  let currentSenderPhone = "";
+  let currentMaxVar = 0; // jumlah var {{n}} di template aktif
 
   // =======================
   // LABEL SEKOLAH + URL
@@ -464,10 +467,32 @@
   }
 
   // =======================
+  // TOAST HELPER
+  // =======================
+  function showToast(title, message, icon = "⏳", duration = 3000) {
+    const toast = document.getElementById("toast");
+    const titleEl = document.getElementById("toastTitle");
+    const msgEl = document.getElementById("toastMessage");
+    const iconEl = document.getElementById("toastIcon");
+
+    if (!toast || !titleEl || !msgEl || !iconEl) return;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    iconEl.textContent = icon;
+
+    toast.classList.remove("hidden");
+
+    clearTimeout(showToast._timeoutId);
+    showToast._timeoutId = setTimeout(() => {
+      toast.classList.add("hidden");
+    }, duration);
+  }
+
+  // =======================
   // SENDER NUMBER (WABA)
   // =======================
 
-  // fallback kalau /senders di backend belum ada
   const FALLBACK_SENDERS = [
     {
       phone: "6285129120664",
@@ -475,7 +500,7 @@
     }
   ];
 
-  let currentSenderPhone =
+  currentSenderPhone =
     localStorage.getItem("sb_sender_phone") ||
     (FALLBACK_SENDERS[0] && FALLBACK_SENDERS[0].phone) ||
     "";
@@ -492,7 +517,6 @@
       const res  = await fetch(BACKEND_SENDERS_URL);
       if (res.ok) {
         const data = await res.json();
-        // backend idealnya balas: { status: "ok", senders: [ { phone, label }, ... ] }
         if (data && data.status === "ok" && Array.isArray(data.senders)) {
           senders = data.senders;
         }
@@ -529,7 +553,7 @@
 
   function updateRecipientUI() {
     const count = recipients.length;
-    document.getElementById("recipientCount").textContent   = count;
+    document.getElementById("recipientCount").textContent    = count;
     document.getElementById("summaryRecipients").textContent = count;
 
     const listEl = document.getElementById("recipientList");
@@ -545,10 +569,28 @@
       const row = document.createElement("div");
       row.className =
         "flex items-center justify-between rounded border border-slate-200 bg-white px-2 py-1";
+
+      // tampilkan semua var{{n}} yang ada
+      const varLabels = Object.keys(r)
+        .filter((k) => /^var\d+$/.test(k) && r[k])
+        .sort((a, b) => {
+          const na = parseInt(a.replace("var", ""), 10);
+          const nb = parseInt(b.replace("var", ""), 10);
+          return na - nb;
+        })
+        .map((k) => {
+          const idxVar = k.replace("var", "");
+          return `{{${idxVar}}}: ${r[k]}`;
+        });
+
       row.innerHTML = `
         <div>
           <div class="font-mono">${r.phone}</div>
-          ${r.var1 ? `<div class="text-[11px] text-slate-500">Var1: ${r.var1}</div>` : ""}
+          ${
+            varLabels.length
+              ? `<div class="text-[11px] text-slate-500">${varLabels.join(" · ")}</div>`
+              : ""
+          }
         </div>
         <button data-idx="${idx}" class="text-xs text-red-500 hover:underline">Remove</button>
       `;
@@ -609,6 +651,7 @@
         sel.innerHTML = '<option value="">Failed to load templates</option>';
         statusEl.textContent = "Error";
         console.error("Templates error:", data);
+        showToast("Error", "Failed to load templates.", "⚠️");
         return;
       }
 
@@ -616,10 +659,11 @@
       if (!templates.length) {
         sel.innerHTML = '<option value="">No approved templates</option>';
         statusEl.textContent = "Empty";
+        showToast("Info", "No approved templates found.", "ℹ️");
         return;
       }
 
-      sel.innerHTML = "";
+      sel.innerHTML = '<option value="">Choose a template...</option>';
       templates.forEach((t) => {
         const opt = document.createElement("option");
         opt.value = t.name;
@@ -627,15 +671,17 @@
         sel.appendChild(opt);
       });
       statusEl.textContent = templates.length + " templates";
+      showToast("Loaded", `Loaded ${templates.length} templates.`, "✅", 2000);
     } catch (err) {
       console.error(err);
       sel.innerHTML = '<option value="">Error loading templates</option>';
       statusEl.textContent = "Error";
+      showToast("Error", "Error loading templates from backend.", "⚠️");
     }
   }
 
   // =======================
-  // ADD VARIABLE BUTTON (Body Text)
+  // ADD VARIABLE BUTTON (Body Text builder)
   // =======================
 
   function getNextVarIndexFromText(text) {
@@ -672,6 +718,52 @@
   }
 
   // =======================
+  // MANUAL VAR HELPERS (untuk penerima manual)
+  // =======================
+
+  function getMaxVarIndexFromText(text) {
+    const re = /\{\{(\d+)\}\}/g;
+    let max = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const n = parseInt(m[1], 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
+    return max;
+  }
+
+  function renderManualVarInputs(maxVar) {
+    const container = document.getElementById("manualVarsContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!maxVar) {
+      container.innerHTML =
+        '<p class="text-[11px] text-slate-500">Pilih template dulu untuk melihat kolom variabel.</p>';
+      return;
+    }
+
+    for (let i = 1; i <= maxVar; i++) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "space-y-1";
+
+      wrapper.innerHTML = `
+        <label class="block text-[11px] text-slate-600">
+          Nilai untuk <span class="font-mono">{{${i}}}</span>
+        </label>
+        <input
+          id="manualVar${i}"
+          type="text"
+          placeholder="Contoh nilai untuk {{${i}}}"
+          class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+        />
+      `;
+      container.appendChild(wrapper);
+    }
+  }
+
+  // =======================
   // DOM READY
   // =======================
 
@@ -679,31 +771,50 @@
     initSenderSelect();
     loadTemplates();
     initAddVariableButton();
+    renderManualVarInputs(0);
 
-    // change template → update preview
+    // change template → update preview & manual var inputs
     const selTpl    = document.getElementById("templateSelect");
     const previewEl = document.getElementById("messagePreview");
     selTpl.addEventListener("change", () => {
       const name = selTpl.value;
       const tpl  = templates.find((t) => t.name === name);
-      previewEl.value =
-        getTemplateBodyText(tpl) || "";
+      const bodyText = getTemplateBodyText(tpl) || "";
+
+      previewEl.value = bodyText;
       document.getElementById("summaryTemplate").textContent =
         name || "Not selected";
+
+      currentMaxVar = getMaxVarIndexFromText(bodyText);
+      renderManualVarInputs(currentMaxVar);
     });
 
-    // Manual add recipient
+    // Manual add recipient (nomor manual + var manual)
     document
       .getElementById("btnAddRecipient")
       .addEventListener("click", () => {
         const input = document.getElementById("manualPhone");
         const phone = input.value.trim();
         if (!phone) return;
+
         if (recipients.some((r) => r.phone === phone)) {
           input.value = "";
           return;
         }
-        recipients.push({ phone, var1: "" });
+
+        const newRec = { phone };
+
+        if (currentMaxVar > 0) {
+          for (let i = 1; i <= currentMaxVar; i++) {
+            const el = document.getElementById(`manualVar${i}`);
+            const val = el ? el.value.trim() : "";
+            if (val) {
+              newRec[`var${i}`] = val;
+            }
+          }
+        }
+
+        recipients.push(newRec);
         input.value = "";
         updateRecipientUI();
       });
@@ -717,7 +828,7 @@
         }
       });
 
-    // CSV upload
+    // CSV upload (phone,var1,var2,var3,...)
     document
       .getElementById("btnUploadCsv")
       .addEventListener("click", () => {
@@ -743,17 +854,29 @@
           for (const line of lines) {
             const parts = line.split(",");
             const phone = (parts[0] || "").trim();
-            const var1  = (parts[1] || "").trim();
             if (!phone) continue;
             if (recipients.some((r) => r.phone === phone)) continue;
-            recipients.push({ phone, var1 });
+
+            const rec = { phone };
+
+            for (let i = 1; i < parts.length; i++) {
+              const val = (parts[i] || "").trim();
+              if (!val) continue;
+              rec[`var${i}`] = val;
+            }
+
+            recipients.push(rec);
             added++;
           }
           infoEl.textContent = `${added} new recipients from CSV`;
+          if (added > 0) {
+            showToast("CSV Imported", `${added} recipients added.`, "✅", 2500);
+          }
           updateRecipientUI();
         } catch (err) {
           console.error(err);
           infoEl.textContent = "Failed to read CSV";
+          showToast("Error", "Failed to read CSV file.", "⚠️");
         }
       });
 
@@ -767,6 +890,7 @@
       .getElementById("sendBtn")
       .addEventListener("click", async () => {
         const outputEl     = document.getElementById("output");
+        const bcStatusEl   = document.getElementById("bcStatus");
         const sel          = document.getElementById("templateSelect");
         const templateName = sel.value;
 
@@ -789,6 +913,8 @@
         }
 
         outputEl.textContent = `Sending to ${recipients.length} recipients...`;
+        bcStatusEl.textContent = `Mengirim ke ${recipients.length} penerima...`;
+        showToast("Sending", `Sending to ${recipients.length} recipients...`, "📤", 4000);
 
         try {
           const res  = await fetch(BACKEND_BROADCAST_URL, {
@@ -798,9 +924,19 @@
           });
           const data = await res.json();
           outputEl.textContent = JSON.stringify(data, null, 2);
+
+          if (res.ok) {
+            bcStatusEl.textContent = "Broadcast request sent. Check logs / backend for delivery status.";
+            showToast("Success", "Broadcast request sent successfully.", "✅", 3000);
+          } else {
+            bcStatusEl.textContent = "Broadcast failed. Check details below.";
+            showToast("Error", "Broadcast failed. See response details.", "⚠️", 4000);
+          }
         } catch (err) {
           console.error(err);
           outputEl.textContent = "Error: " + err.message;
+          bcStatusEl.textContent = "Broadcast error. Please try again.";
+          showToast("Error", "Broadcast error: " + err.message, "⚠️", 4000);
         }
       });
 
@@ -811,13 +947,12 @@
         const name      = document.getElementById("tpl_name").value.trim();
         const category  = document.getElementById("tpl_category").value;
         const body_text = document.getElementById("tpl_body").value.trim();
-        // SEMENTARA matikan example_1 karena input-nya belum ada
-        const example_1 = "";
         const footer    = document.getElementById("tpl_footer").value.trim();
         const btn1      = document.getElementById("tpl_btn1").value.trim();
         const btn2      = document.getElementById("tpl_btn2").value.trim();
         const btn3      = document.getElementById("tpl_btn3").value.trim();
         const outEl     = document.getElementById("tplResult");
+        const statusEl  = document.getElementById("tplStatus");
 
         if (!name || !category || !body_text) {
           alert("Template name, category, dan body wajib diisi.");
@@ -826,6 +961,8 @@
 
         const buttons = [btn1, btn2, btn3].filter((b) => b.length > 0);
         outEl.textContent = "Submitting template to Meta...";
+        statusEl.textContent = "Mengajukan template ke Meta...";
+        showToast("Submitting", "Submitting template to Meta...", "⏳", 4000);
 
         try {
           const res  = await fetch(BACKEND_CREATE_TEMPLATE_URL, {
@@ -835,22 +972,32 @@
               name,
               category,
               body_text,
-              example_1,
+              example_1: "",  // sementara kosong, belum ada field example
               footer_text: footer,
               buttons
             })
           });
           const data = await res.json();
           outEl.textContent = JSON.stringify(data, null, 2);
+
+          if (res.ok && data.status === "ok") {
+            statusEl.textContent = "Template submitted. Waiting for Meta review.";
+            showToast("Success", "Template submitted for review.", "✅", 3000);
+          } else {
+            statusEl.textContent = "Template submission error. See details below.";
+            showToast("Error", "Template submission error.", "⚠️", 4000);
+          }
         } catch (err) {
           console.error(err);
           outEl.textContent = "Error: " + err.message;
+          statusEl.textContent = "Error submitting template.";
+          showToast("Error", "Error submitting template: " + err.message, "⚠️", 4000);
         }
       });
   });
 </script>
 
-  <!-- Toast / popup status global (belum dipakai, siap kalau mau nyalain) -->
+  <!-- Toast / popup status global -->
   <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
     <div
       id="toastInner"
