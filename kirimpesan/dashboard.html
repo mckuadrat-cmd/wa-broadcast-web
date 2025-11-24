@@ -852,22 +852,18 @@
           return;
         }
 
+        setStatusBox(
+          "bcStatus",
+          "info",
+          `Mengirim ke ${recipients.length} nomor, mohon tunggu…`
+        );
+        showToast(
+          "loading",
+          "Broadcast sedang dikirim",
+          `${recipients.length} penerima akan diproses.`
+        );
         outputEl.textContent = `Sending to ${recipients.length} recipients...`;
-
-        const rows = recipients.map((r) => ({
-          phone: r.phone,
-          var1: (r.var1 && r.var1.trim()) || globalVar1 || ""
-        }));
-
-        const bodyPayload = {
-          template_name: templateName,
-          rows
-        };
-
-        if (currentSenderId) {
-          bodyPayload.sender_id = currentSenderId;
-        }
-
+        
         try {
           const res = await fetch(BACKEND_BROADCAST_URL, {
             method: "POST",
@@ -876,9 +872,35 @@
           });
           const data = await res.json();
           outputEl.textContent = JSON.stringify(data, null, 2);
+        
+          if (res.ok) {
+            setStatusBox(
+              "bcStatus",
+              "success",
+              `Broadcast terkirim (cek detail & delivery status di WhatsApp Manager).`
+            );
+            showToast(
+              "success",
+              "Broadcast terkirim",
+              `Permintaan broadcast ke ${recipients.length} nomor sudah diterima API.`
+            );
+          } else {
+            setStatusBox(
+              "bcStatus",
+              "error",
+              "API mengembalikan error. Lihat detail teknis untuk info lengkap."
+            );
+            showToast(
+              "error",
+              "Broadcast gagal",
+              data.error?.message || "Terjadi error dari API."
+            );
+          }
         } catch (err) {
           console.error(err);
           outputEl.textContent = "Error: " + err.message;
+          setStatusBox("bcStatus", "error", "Terjadi error jaringan / server.");
+          showToast("error", "Error Broadcast", err.message);
         }
       });
 
@@ -915,7 +937,14 @@
             .map((k) => exampleMap[k]);
           const example_1 = exampleMap["1"] || "";
 
-          const buttons = [btn1, btn2, btn3].filter((b) => b.length > 0);
+          const outEl     = document.getElementById("tplResult");
+          
+          if (!name || !category || !body_text) {
+            alert("Template name, category, dan body wajib diisi.");
+            return;
+          }
+          
+          const buttons = [btn1, btn2, btn3].filter(b => b.length > 0);
           outEl.textContent = "Submitting template to Meta...";
 
           try {
@@ -933,12 +962,42 @@
                 buttons
               })
             });
-            const data = await res.json();
-            outEl.textContent = JSON.stringify(data, null, 2);
-          } catch (err) {
-            console.error(err);
-            outEl.textContent = "Error: " + err.message;
-          }
+        const data = await res.json();
+        outEl.textContent = JSON.stringify(data, null, 2);
+        
+        if (data.status === "submitted" || data.success) {
+          setStatusBox(
+            "tplStatus",
+            "success",
+            "Template berhasil diajukan ke Meta. Status awal: submitted."
+          );
+          showToast(
+            "success",
+            "Template dikirim",
+            "Silakan cek di WhatsApp Manager untuk status approve/reject."
+          );
+        } else {
+          setStatusBox(
+            "tplStatus",
+            "error",
+            "Meta mengembalikan respon yang perlu dicek (lihat detail teknis)."
+          );
+          showToast(
+            "error",
+            "Gagal mengirim template",
+            "Lihat detail teknis di bagian Template API Response."
+          );
+        }
+        } catch (err) {
+          console.error(err);
+          outEl.textContent = "Error: " + err.message;
+          setStatusBox(
+            "tplStatus",
+            "error",
+            "Terjadi error saat mengirim template ke API."
+          );
+          showToast("error", "Error Template", err.message);
+        }
         });
     });
   </script>
