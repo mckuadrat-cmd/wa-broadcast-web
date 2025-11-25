@@ -57,9 +57,17 @@
             <div class="text-xs text-slate-500">Manage templates and broadcast messages</div>
           </div>
         </div>
-        <div class="hidden text-sm text-slate-500 sm:block">
+        <div class="hidden text-sm text-slate-500 sm:flex sm:items-center sm:gap-4">
           Hai, <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
-          <button onclick="logout()" class="ml-2 text-xs font-semibold text-red-500 underline">
+        
+          <a 
+            href="/kirimpesan/broadcast-log.html"
+            class="text-xs font-semibold text-mcgreen underline hover:text-mcdark"
+          >
+            Riwayat Broadcast
+          </a>
+        
+          <button onclick="logout()" class="text-xs font-semibold text-red-500 underline">
             Logout
           </button>
         </div>
