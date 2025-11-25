@@ -743,6 +743,91 @@
     });
   }
 
+    // =======================
+  // TEMPLATE APPROVAL MONITOR
+  // =======================
+
+  async function isTemplateApproved(tplName) {
+    try {
+      const res  = await fetch(BACKEND_TEMPLATES_URL + "?status=APPROVED");
+      const data = await res.json();
+      if (data.status !== "ok") return false;
+      const list = Array.isArray(data.templates) ? data.templates : [];
+      return list.some((t) => t.name === tplName);
+    } catch (err) {
+      console.error("check template approved error:", err);
+      return false;
+    }
+  }
+
+  function startTemplateApprovalMonitor(tplName) {
+    const modal = document.getElementById("tplMonitorModal");
+    const textEl = document.getElementById("tplMonitorText");
+    const infoEl = document.getElementById("tplMonitorInfo");
+    const closeBtn = document.getElementById("tplMonitorClose");
+
+    if (!modal || !textEl || !infoEl || !closeBtn) return;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    let elapsed = 0;
+    const interval = 10;    // detik
+    const maxTime  = 120;   // 2 menit
+
+    let stopped = false;
+
+    function stop() {
+      if (stopped) return;
+      stopped = true;
+      clearInterval(startTemplateApprovalMonitor._timerId);
+    }
+
+    closeBtn.onclick = () => {
+      stop();
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    };
+
+    async function tick() {
+      if (stopped) return;
+
+      textEl.textContent = `Mengecek status template "${tplName}"...`;
+      infoEl.textContent = `Sudah menunggu ${elapsed} detik. Mengecek lagi dalam ${interval} detik.`;
+
+      const approved = await isTemplateApproved(tplName);
+      if (approved) {
+        textEl.textContent = `Template "${tplName}" sudah APPROVED ✅`;
+        infoEl.textContent = "Dropdown template akan diperbarui otomatis.";
+        showToast("Approved", `Template "${tplName}" sudah approved.`, "✅", 3500);
+
+        // refresh dropdown template
+        await loadTemplates();
+
+        // tutup modal setelah 3 detik
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+        }, 3000);
+
+        stop();
+        return;
+      }
+
+      elapsed += interval;
+      if (elapsed >= maxTime) {
+        textEl.textContent = `Template "${tplName}" masih dalam proses review.`;
+        infoEl.textContent = "Coba cek lagi nanti atau klik Submit lagi bila perlu.";
+        showToast("Info", "Template masih dalam review. Cek lagi nanti.", "ℹ️", 3500);
+        stop();
+      }
+    }
+
+    // jalan pertama, lalu di-set interval
+    tick();
+    startTemplateApprovalMonitor._timerId = setInterval(tick, interval * 1000);
+  }
+
   // =======================
   // MANUAL VAR HELPERS (untuk penerima manual)
   // =======================
@@ -1019,6 +1104,9 @@
           if (res.ok && (data.status === "ok" || data.status === "submitted")) {
             statusEl.textContent = "Template submitted. Waiting for Meta review.";
             showToast("Success", "Template submitted for review.", "✅", 3000);
+          
+            // === mulai monitor approval ===
+            startTemplateApprovalMonitor(name);
           } else {
             statusEl.textContent = "Template submission error. See details below.";
             showToast("Error", "Template submission error.", "⚠️", 4000);
@@ -1050,6 +1138,33 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal monitor status template -->
+<div
+  id="tplMonitorModal"
+  class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+>
+  <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl border border-slate-200">
+    <h3 class="text-sm font-semibold text-slate-800 mb-1">
+      Memantau status template...
+    </h3>
+    <p id="tplMonitorText" class="text-xs text-slate-600 mb-2">
+      Mengirim ke Meta. Menunggu approval template dari WhatsApp...
+    </p>
+    <p id="tplMonitorInfo" class="text-[11px] text-slate-500 mb-3">
+      Pengecekan otomatis setiap 10 detik, maksimal 2 menit.
+    </p>
+    <div class="flex justify-end gap-2">
+      <button
+        id="tplMonitorClose"
+        type="button"
+        class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+      >
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
