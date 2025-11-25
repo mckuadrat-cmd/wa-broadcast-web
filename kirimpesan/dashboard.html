@@ -815,60 +815,6 @@
       renderManualVarInputs(currentMaxVar);
     });
 
-    // SEND CUSTOM FOLLOW-UP MESSAGE
-    document
-      .getElementById("followSendBtn")
-      .addEventListener("click", async () => {
-        const phone = document.getElementById("followPhone").value.trim();
-        const text  = document.getElementById("followText").value.trim();
-        const mType = document.getElementById("followMediaType").value;
-        const mLink = document.getElementById("followMediaLink").value.trim();
-        const outEl = document.getElementById("followOutput");
-
-        if (!phone) {
-          alert("Nomor WhatsApp (phone) wajib diisi.");
-          return;
-        }
-        if (!text && !mType) {
-          alert("Isi minimal text atau pilih attachment.");
-          return;
-        }
-
-        const payload = { to: phone };
-
-        if (text) payload.text = text;
-        if (mType && mLink) {
-          payload.media = {
-            type: mType,
-            link: mLink
-          };
-        }
-
-        outEl.textContent = "Sending custom message...";
-        showToast("Sending", "Sending custom message...", "📨", 3000);
-
-        try {
-          const res = await fetch(API_BASE + "custom", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          const data = await res.json();
-          outEl.textContent = JSON.stringify(data, null, 2);
-
-          if (res.ok && data.status === "ok") {
-            showToast("Success", "Custom message sent.", "✅", 2500);
-          } else {
-            showToast("Error", "Custom message error. Cek detail.", "⚠️", 4000);
-          }
-        } catch (err) {
-          console.error(err);
-          outEl.textContent = "Error: " + err.message;
-          showToast("Error", "Custom message error: " + err.message, "⚠️", 4000);
-        }
-      });
-
-
     // Manual add recipient (nomor manual + var manual)
     document
       .getElementById("btnAddRecipient")
