@@ -20,7 +20,6 @@
   </script>
 
   <style>
-    /* Background gradient sama seperti halaman login */
     body {
       background: linear-gradient(to bottom, #ffe9df, #ffffff 40%, #ffffff 60%, #ffe9df);
     }
@@ -60,7 +59,7 @@
         <div class="hidden text-sm text-slate-500 sm:flex sm:items-center sm:gap-4">
           Hai, <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
 
-          <a 
+          <a
             href="/kirimpesan/broadcast-log.html"
             class="text-xs font-semibold text-mcgreen underline hover:text-mcdark"
           >
@@ -165,7 +164,7 @@
               </p>
             </div>
 
-            <!-- Dynamic examples (belum di-wire, disiapkan) -->
+            <!-- Dynamic examples (ikut Body Text) -->
             <div class="space-y-1">
               <label class="font-medium">Examples for variables (Optional)</label>
               <div id="tpl_examples_container" class="space-y-1 text-xs text-slate-500">
@@ -228,7 +227,7 @@
             <!-- Result -->
             <div class="pt-2">
               <p class="mb-1 text-xs font-medium text-slate-500">Template API Response</p>
-              
+
               <!-- Ringkasan status -->
               <div
                 id="tplStatus"
@@ -236,7 +235,7 @@
               >
                 Belum ada pengajuan template.
               </div>
-              
+
               <!-- Detail teknis untuk developer -->
               <details class="mt-1 text-[11px] text-slate-400">
                 <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
@@ -305,6 +304,7 @@
                 placeholder="Body template dari Meta akan muncul di sini..."
                 readonly
               ></textarea>
+              <!-- PREVIEW QUICK REPLY BUTTONS -->
               <div id="templateButtonsPreview" class="mt-1 flex flex-wrap gap-2 text-xs"></div>
             </div>
 
@@ -317,7 +317,7 @@
                 class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
                 placeholder="Pesan lanjutan ketika penerima klik quick reply (misal: BERSEDIA). Kosongkan jika ingin mematikan follow-up."
               ></textarea>
-            
+
               <div class="space-y-1">
                 <label class="text-xs font-medium text-slate-600">Attachment (link, optional)</label>
                 <input
@@ -327,7 +327,7 @@
                   placeholder="Link PDF yang sama untuk semua penerima (opsional). Jika kosong, bisa pakai link per-orang dari CSV."
                 />
               </div>
-            
+
               <p class="text-[11px] text-slate-500">
                 Gunakan {{1}}, {{2}}, dst di Message Followup untuk mengambil nilai dari kolom setelah nomor di CSV.
                 Jika Attachment kosong tapi CSV punya kolom link di paling kanan, link tersebut akan dipakai untuk kirim PDF per orang.
@@ -433,14 +433,14 @@
             <!-- Output -->
             <div class="pt-2">
               <p class="mb-1 text-xs font-medium text-slate-500">Broadcast API Response</p>
-              
+
               <div
                 id="bcStatus"
                 class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
               >
                 Belum ada pengiriman broadcast.
               </div>
-              
+
               <details class="mt-1 text-[11px] text-slate-400">
                 <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
                 <pre
@@ -455,9 +455,95 @@
     </main>
   </div>
 
-  <!-- =======================
-       SCRIPT LOGIKA DASHBOARD
-       ======================= -->
+  <!-- Modal hasil broadcast -->
+  <div
+    id="broadcastModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+  >
+    <div class="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl border border-slate-200 max-h-[80vh] flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-slate-800">
+          Hasil Broadcast Terbaru
+        </h3>
+        <button
+          id="broadcastModalClose"
+          type="button"
+          class="text-xs text-slate-500 hover:text-slate-700"
+        >
+          Tutup ✕
+        </button>
+      </div>
+
+      <p id="broadcastSummaryText" class="text-xs text-slate-600 mb-3">
+        Ringkasan pengiriman akan tampil di sini.
+      </p>
+
+      <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
+        <table class="min-w-full text-[11px]">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Info 1 / Nama</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Status Template</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
+            <!-- rows via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <p class="mt-2 text-[11px] text-slate-500">
+        *Status pesan follow-up akan menyusul lewat webhook ketika penerima menekan quick reply (misal: BERSEDIA).
+      </p>
+    </div>
+  </div>
+
+  <!-- Toast / popup status global -->
+  <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+    <div
+      id="toastInner"
+      class="flex items-start gap-2 rounded-lg bg-slate-900/90 px-4 py-3 text-sm text-white shadow-lg"
+    >
+      <div id="toastIcon" class="mt-0.5 text-lg">⏳</div>
+      <div>
+        <p id="toastTitle" class="text-sm font-semibold">Processing…</p>
+        <p id="toastMessage" class="mt-0.5 text-xs opacity-80">
+          Please wait, do not close this page.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal monitor status template -->
+  <div
+    id="tplMonitorModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+  >
+    <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl border border-slate-200">
+      <h3 class="text-sm font-semibold text-slate-800 mb-1">
+        Memantau status template...
+      </h3>
+      <p id="tplMonitorText" class="text-xs text-slate-600 mb-2">
+        Mengirim ke Meta. Menunggu approval template dari WhatsApp...
+      </p>
+      <p id="tplMonitorInfo" class="text-[11px] text-slate-500 mb-3">
+        Pengecekan otomatis setiap 10 detik, maksimal 2 menit.
+      </p>
+      <div class="flex justify-end gap-2">
+        <button
+          id="tplMonitorClose"
+          type="button"
+          class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // =======================
     // KONSTAN BACKEND
@@ -481,7 +567,6 @@
 
       const SCHOOL_MAP = {
         "sekolahpesatbogor": "Sekolah Pesat Bogor"
-        // nanti kalau nambah sekolah tinggal tambahin di sini
       };
 
       const label = SCHOOL_MAP[storedSchool] || storedSchool;
@@ -529,6 +614,7 @@
     // =======================
     // SENDER NUMBER (WABA)
     // =======================
+
     const FALLBACK_SENDERS = [
       {
         phone: "6285129120664",
@@ -586,6 +672,7 @@
     // =======================
     // RECIPIENT UI
     // =======================
+
     function updateRecipientUI() {
       const count = recipients.length;
       document.getElementById("recipientCount").textContent    = count;
@@ -665,10 +752,29 @@
     // =======================
     // TEMPLATE
     // =======================
+
     function getTemplateBodyText(tpl) {
       if (!tpl || !Array.isArray(tpl.components)) return "";
       const body = tpl.components.find((c) => c.type === "BODY");
       return (body && body.text) || "";
+    }
+
+    function renderTemplateButtons(tpl) {
+      const container = document.getElementById("templateButtonsPreview");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (!tpl || !Array.isArray(tpl.components)) return;
+      const btnComp = tpl.components.find((c) => c.type === "BUTTONS");
+      if (!btnComp || !Array.isArray(btnComp.buttons)) return;
+
+      btnComp.buttons.forEach((b) => {
+        const span = document.createElement("span");
+        span.className =
+          "inline-flex items-center rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-[11px] text-slate-700";
+        span.textContent = b.text || "(button)";
+        container.appendChild(span);
+      });
     }
 
     async function loadTemplates() {
@@ -716,6 +822,7 @@
     // =======================
     // ADD VARIABLE BUTTON (Body Text builder)
     // =======================
+
     function getNextVarIndexFromText(text) {
       const re = /\{\{(\d+)\}\}/g;
       let max = 0;
@@ -745,12 +852,15 @@
         const caretPos = start + insertStr.length;
         ta.selectionStart = caretPos;
         ta.selectionEnd   = caretPos;
+
+        updateExamplesFromBody();
       });
     }
 
     // =======================
     // TEMPLATE APPROVAL MONITOR
     // =======================
+
     async function isTemplateApproved(tplName) {
       try {
         const res  = await fetch(BACKEND_TEMPLATES_URL + "?status=APPROVED");
@@ -778,7 +888,6 @@
       let elapsed = 0;
       const interval = 10;    // detik
       const maxTime  = 120;   // 2 menit
-
       let stopped = false;
 
       function stop() {
@@ -832,6 +941,7 @@
     // =======================
     // MANUAL VAR HELPERS
     // =======================
+
     function getMaxVarIndexFromText(text) {
       const re = /\{\{(\d+)\}\}/g;
       let max = 0;
@@ -875,8 +985,49 @@
     }
 
     // =======================
+    // EXAMPLES FOLLOW BODY TEXT
+    // =======================
+
+    function updateExamplesFromBody() {
+      const ta = document.getElementById("tpl_body");
+      const container = document.getElementById("tpl_examples_container");
+      if (!ta || !container) return;
+
+      const text = ta.value || "";
+      const matches = [...text.matchAll(/\{\{(\d+)\}\}/g)];
+
+      container.innerHTML = "";
+
+      if (!matches.length) {
+        container.innerHTML =
+          '<p class="text-[11px] text-slate-500">Tambahkan {{1}}, {{2}}, dst pada Body Text. Input contoh akan muncul otomatis di sini.</p>';
+        return;
+      }
+
+      const indices = [...new Set(matches.map((m) => parseInt(m[1], 10)))]
+        .filter((n) => !isNaN(n))
+        .sort((a, b) => a - b);
+
+      indices.forEach((i) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2";
+        row.innerHTML = `
+          <span class="inline-flex h-5 items-center rounded bg-slate-100 px-2 font-mono text-[11px] text-slate-700">{{${i}}}</span>
+          <input
+            type="text"
+            data-example-index="${i}"
+            class="flex-1 rounded-md border border-slate-300 bg-slate-50 px-2 py-1 text-[11px] outline-none focus:ring-1 focus:ring-[#f7542e]"
+            placeholder="Contoh nilai untuk {{${i}}}"
+          />
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // =======================
     // BROADCAST RESULT MODAL
     // =======================
+
     function openBroadcastModal(broadcastData) {
       const modal   = document.getElementById("broadcastModal");
       const closeBtn = document.getElementById("broadcastModalClose");
@@ -898,10 +1049,6 @@
         const rec = recipients.find((x) => x.phone === r.phone) || {};
         const info1 = rec.var1 || "-";
 
-        const errStr = r.error
-          ? (typeof r.error === "string" ? r.error : JSON.stringify(r.error).slice(0, 80) + "...")
-          : "-";
-
         tr.innerHTML = `
           <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
           <td class="px-2 py-1 font-mono text-slate-800">${r.phone || "-"}</td>
@@ -910,7 +1057,7 @@
             ${r.ok ? "OK" : "FAILED"}
           </td>
           <td class="px-2 py-1 text-slate-500">
-            ${errStr}
+            ${r.error ? (typeof r.error === "string" ? r.error : JSON.stringify(r.error).slice(0,80) + "...") : "-"}
           </td>
         `;
         bodyEl.appendChild(tr);
@@ -931,13 +1078,23 @@
     // =======================
     // DOM READY
     // =======================
+
     document.addEventListener("DOMContentLoaded", () => {
       initSenderSelect();
       loadTemplates();
       initAddVariableButton();
       renderManualVarInputs(0);
+      updateExamplesFromBody();
 
-      // change template → update preview & manual var inputs
+      // Body text → update examples
+      const bodyTa = document.getElementById("tpl_body");
+      if (bodyTa) {
+        ["input", "change", "blur"].forEach((evt) => {
+          bodyTa.addEventListener(evt, updateExamplesFromBody);
+        });
+      }
+
+      // change template → update preview, manual vars, button preview
       const selTpl    = document.getElementById("templateSelect");
       const previewEl = document.getElementById("messagePreview");
       selTpl.addEventListener("change", () => {
@@ -951,6 +1108,7 @@
 
         currentMaxVar = getMaxVarIndexFromText(bodyText);
         renderManualVarInputs(currentMaxVar);
+        renderTemplateButtons(tpl);
       });
 
       // Manual add recipient
@@ -992,7 +1150,14 @@
           }
         });
 
-      // CSV upload (phone,var1,var2,...,follow_media)
+      // CSV upload button → trigger input
+      const csvInput = document.getElementById("csvFile");
+      const csvBtn   = document.getElementById("btnUploadCsv");
+      if (csvBtn && csvInput) {
+        csvBtn.addEventListener("click", () => csvInput.click());
+      }
+
+      // CSV upload (phone,var1,var2,...,link)
       document
         .getElementById("csvFile")
         .addEventListener("change", async (e) => {
@@ -1080,8 +1245,8 @@
             bodyPayload.sender_phone = currentSenderPhone;
           }
 
-          // FOLLOW-UP CONFIG
-          const followText   = document.getElementById("followupText")?.value.trim() || "";
+          // FOLLOWUP CONFIG
+          const followText = document.getElementById("followupText")?.value.trim() || "";
           const followAttach = document.getElementById("followupAttachment")?.value.trim() || "";
 
           if (followText) {
@@ -1096,7 +1261,6 @@
           }
 
           outputEl.textContent = `Sending to ${recipients.length} recipients...`;
-          showToast("Sending", "Broadcast in progress...", "📨", 3000);
 
           try {
             const res  = await fetch(BACKEND_BROADCAST_URL, {
@@ -1139,6 +1303,10 @@
             return;
           }
 
+          // ambil contoh pertama (kalau ada)
+          const exampleInput = document.querySelector("#tpl_examples_container input[data-example-index]");
+          const example_1 = exampleInput ? exampleInput.value.trim() : "";
+
           const buttons = [btn1, btn2, btn3].filter((b) => b.length > 0);
           outEl.textContent = "Submitting template to Meta...";
           statusEl.textContent = "Mengajukan template ke Meta...";
@@ -1152,7 +1320,7 @@
                 name,
                 category,
                 body_text,
-                example_1: "",
+                example_1,
                 footer_text: footer,
                 buttons
               })
@@ -1177,95 +1345,6 @@
         });
     });
   </script>
-
-  <!-- Toast / popup status global -->
-  <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
-    <div
-      id="toastInner"
-      class="flex items-start gap-2 rounded-lg bg-slate-900/90 px-4 py-3 text-sm text-white shadow-lg"
-    >
-      <div id="toastIcon" class="mt-0.5 text-lg">⏳</div>
-      <div>
-        <p id="toastTitle" class="text-sm font-semibold">Processing…</p>
-        <p id="toastMessage" class="mt-0.5 text-xs opacity-80">
-          Please wait, do not close this page.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal hasil broadcast -->
-  <div
-    id="broadcastModal"
-    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
-  >
-    <div class="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl border border-slate-200 max-h-[80vh] flex flex-col">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-slate-800">
-          Hasil Broadcast Terbaru
-        </h3>
-        <button
-          id="broadcastModalClose"
-          type="button"
-          class="text-xs text-slate-500 hover:text-slate-700"
-        >
-          Tutup ✕
-        </button>
-      </div>
-
-      <p id="broadcastSummaryText" class="text-xs text-slate-600 mb-3">
-        Ringkasan pengiriman akan tampil di sini.
-      </p>
-
-      <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
-        <table class="min-w-full text-[11px]">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Info 1 / Nama</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Status Template</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
-            </tr>
-          </thead>
-          <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
-            <!-- rows via JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <p class="mt-2 text-[11px] text-slate-500">
-        *Status pesan follow-up akan menyusul lewat webhook ketika penerima menekan quick reply (misal: BERSEDIA).
-      </p>
-    </div>
-  </div>
-
-  <!-- Modal monitor status template -->
-  <div
-    id="tplMonitorModal"
-    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
-  >
-    <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl border border-slate-200">
-      <h3 class="text-sm font-semibold text-slate-800 mb-1">
-        Memantau status template...
-      </h3>
-      <p id="tplMonitorText" class="text-xs text-slate-600 mb-2">
-        Mengirim ke Meta. Menunggu approval template dari WhatsApp...
-      </p>
-      <p id="tplMonitorInfo" class="text-[11px] text-slate-500 mb-3">
-        Pengecekan otomatis setiap 10 detik, maksimal 2 menit.
-      </p>
-      <div class="flex justify-end gap-2">
-        <button
-          id="tplMonitorClose"
-          type="button"
-          class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
-        >
-          Tutup
-        </button>
-      </div>
-    </div>
-  </div>
 
 </body>
 </html>
