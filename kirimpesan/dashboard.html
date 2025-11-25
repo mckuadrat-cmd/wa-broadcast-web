@@ -300,6 +300,32 @@
               <div id="templateButtonsPreview" class="mt-1 flex flex-wrap gap-2 text-xs"></div>
             </div>
 
+            <!-- Message Followup (Optional) -->
+            <div class="space-y-1 border-t border-slate-200 pt-3">
+              <label class="font-medium">Message Followup (Optional)</label>
+              <textarea
+                id="followupText"
+                rows="3"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+                placeholder="Pesan lanjutan ketika penerima klik quick reply (misal: BERSEDIA). Kosongkan jika ingin mematikan follow-up."
+              ></textarea>
+            
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-slate-600">Attachment (link, optional)</label>
+                <input
+                  id="followupAttachment"
+                  type="text"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-mcgreen focus:ring-1 focus:ring-mcgreen"
+                  placeholder="Link PDF yang sama untuk semua penerima (opsional). Jika kosong, bisa pakai link per-orang dari CSV."
+                />
+              </div>
+            
+              <p class="text-[11px] text-slate-500">
+                Gunakan {{1}}, {{2}}, dst di Message Followup untuk mengambil nilai dari kolom setelah nomor di CSV.
+                Jika Attachment kosong tapi CSV punya kolom link di paling kanan, link tersebut akan dipakai untuk kirim PDF per orang.
+              </p>
+            </div>
+
             <!-- Recipients -->
             <div class="space-y-2 border-t border-slate-200 pt-3">
               <div class="flex items-center justify-between">
@@ -394,78 +420,6 @@
               >
                 <span id="sendBtnLabel">Send Broadcast Now</span>
               </button>
-            </div>
-
-            <!-- FOLLOW-UP / CUSTOM MESSAGE (WEBHOOK HELPER) -->
-            <div class="mt-6 border-t border-slate-200 pt-4">
-              <div class="mb-2 flex items-center justify-between">
-                <h3 class="text-sm font-semibold">Send Custom Message (Follow-up)</h3>
-                <span class="text-[11px] text-slate-500">Untuk testing/webhook</span>
-              </div>
-            
-              <div class="space-y-3 text-sm">
-                <div class="space-y-1">
-                  <label class="font-medium">Phone (WhatsApp)</label>
-                  <input
-                    id="followPhone"
-                    type="text"
-                    placeholder="62812xxxxxxx"
-                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
-                  />
-                </div>
-            
-                <div class="space-y-1">
-                  <label class="font-medium">Message Text</label>
-                  <textarea
-                    id="followText"
-                    rows="3"
-                    placeholder="Pesan lanjutan setelah user klik quick reply..."
-                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
-                  ></textarea>
-                </div>
-            
-                <div class="space-y-1">
-                  <label class="font-medium">Attachment (optional)</label>
-                  <select
-                    id="followMediaType"
-                    class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
-                  >
-                    <option value="">No attachment</option>
-                    <option value="document">Document (PDF, etc)</option>
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
-                  </select>
-                  <input
-                    id="followMediaLink"
-                    type="text"
-                    placeholder="Link file (misal: link Google Drive / CDN). Kosongkan jika tidak ada."
-                    class="mt-1 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
-                  />
-                  <p class="text-[11px] text-slate-500">
-                    WhatsApp hanya menerima file via <span class="font-mono">link</span>. 
-                    Untuk upload dari komputer, unggah dulu ke Google Drive/hosting, lalu paste link di sini.
-                  </p>
-                </div>
-            
-                <div class="pt-1">
-                  <button
-                    id="followSendBtn"
-                    type="button"
-                    class="inline-flex w-full items-center justify-center rounded-md bg-[#f7542e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04825] transition"
-                  >
-                    Send Custom Message
-                  </button>
-                </div>
-            
-                <div class="pt-1">
-                  <p class="mb-1 text-xs font-medium text-slate-500">Custom Message Response</p>
-                  <pre
-                    id="followOutput"
-                    class="max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
-                  >// Hasil kirim custom message akan muncul di sini</pre>
-                </div>
-              </div>
             </div>
 
             <!-- Output -->
@@ -956,12 +910,6 @@
 
     // CSV upload (phone,var1,var2,var3,...)
     document
-      .getElementById("btnUploadCsv")
-      .addEventListener("click", () => {
-        document.getElementById("csvFile").click();
-      });
-
-    document
       .getElementById("csvFile")
       .addEventListener("change", async (e) => {
         const file   = e.target.files[0];
@@ -976,33 +924,46 @@
             .split(/\r?\n/)
             .map((l) => l.trim())
             .filter((l) => l.length > 0);
+    
           let added = 0;
+    
           for (const line of lines) {
-            const parts = line.split(",");
-            const phone = (parts[0] || "").trim();
+            const colsRaw = line.split(",");
+            if (!colsRaw.length) continue;
+    
+            const phone = (colsRaw[0] || "").trim();
             if (!phone) continue;
             if (recipients.some((r) => r.phone === phone)) continue;
-
-            const rec = { phone };
-
-            for (let i = 1; i < parts.length; i++) {
-              const val = (parts[i] || "").trim();
-              if (!val) continue;
-              rec[`var${i}`] = val;
+    
+            const cols = colsRaw.slice(1).map((c) => c.trim());
+    
+            const row = { phone };
+    
+            if (cols.length > 0) {
+              const lastIdx = cols.length - 1;
+    
+              cols.forEach((val, idx) => {
+                if (!val) return;
+                if (idx < lastIdx) {
+                  // kolom 2..(n-1) → var1, var2, ...
+                  const key = "var" + (idx + 1);
+                  row[key] = val;
+                } else {
+                  // kolom terakhir → link attachment follow-up per-orang (opsional)
+                  row.follow_media = val;
+                }
+              });
             }
-
-            recipients.push(rec);
+    
+            recipients.push(row);
             added++;
           }
+    
           infoEl.textContent = `${added} new recipients from CSV`;
-          if (added > 0) {
-            showToast("CSV Imported", `${added} recipients added.`, "✅", 2500);
-          }
           updateRecipientUI();
         } catch (err) {
           console.error(err);
           infoEl.textContent = "Failed to read CSV";
-          showToast("Error", "Failed to read CSV file.", "⚠️");
         }
       });
 
@@ -1016,10 +977,9 @@
       .getElementById("sendBtn")
       .addEventListener("click", async () => {
         const outputEl     = document.getElementById("output");
-        const bcStatusEl   = document.getElementById("bcStatus");
         const sel          = document.getElementById("templateSelect");
         const templateName = sel.value;
-
+    
         if (!templateName) {
           alert("Please select a template.");
           return;
@@ -1028,20 +988,34 @@
           alert("Add at least one recipient.");
           return;
         }
-
+    
         const bodyPayload = {
           template_name: templateName,
           rows: recipients
         };
-
+    
         if (currentSenderPhone) {
           bodyPayload.sender_phone = currentSenderPhone;
         }
-
+    
+        // === FOLLOWUP CONFIG DARI FRONTEND ===
+        const followText = document.getElementById("followupText")?.value.trim() || "";
+        const followAttach = document.getElementById("followupAttachment")?.value.trim() || "";
+    
+        // Kalau followText kosong → webhook nonaktif (tidak kirim pesan lanjutan)
+        if (followText) {
+          const followup = { text: followText };
+          if (followAttach) {
+            followup.static_media = {
+              type: "document",   // kita anggap attachment utama berupa PDF
+              link: followAttach
+            };
+          }
+          bodyPayload.followup = followup;
+        }
+    
         outputEl.textContent = `Sending to ${recipients.length} recipients...`;
-        bcStatusEl.textContent = `Mengirim ke ${recipients.length} penerima...`;
-        showToast("Sending", `Sending to ${recipients.length} recipients...`, "📤", 4000);
-
+    
         try {
           const res  = await fetch(BACKEND_BROADCAST_URL, {
             method: "POST",
@@ -1050,19 +1024,9 @@
           });
           const data = await res.json();
           outputEl.textContent = JSON.stringify(data, null, 2);
-
-          if (res.ok) {
-            bcStatusEl.textContent = "Broadcast request sent. Check logs / backend for delivery status.";
-            showToast("Success", "Broadcast request sent successfully.", "✅", 3000);
-          } else {
-            bcStatusEl.textContent = "Broadcast failed. Check details below.";
-            showToast("Error", "Broadcast failed. See response details.", "⚠️", 4000);
-          }
         } catch (err) {
           console.error(err);
           outputEl.textContent = "Error: " + err.message;
-          bcStatusEl.textContent = "Broadcast error. Please try again.";
-          showToast("Error", "Broadcast error: " + err.message, "⚠️", 4000);
         }
       });
 
