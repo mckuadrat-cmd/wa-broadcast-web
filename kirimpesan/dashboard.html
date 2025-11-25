@@ -1016,12 +1016,14 @@
           const data = await res.json();
           outEl.textContent = JSON.stringify(data, null, 2);
 
-          if (res.ok && data.status === "ok") {
+          if (res.ok && (data.status === "ok" || data.status === "submitted")) {
             statusEl.textContent = "Template submitted. Waiting for Meta review.";
             showToast("Success", "Template submitted for review.", "✅", 3000);
           } else {
             statusEl.textContent = "Template submission error. See details below.";
             showToast("Error", "Template submission error.", "⚠️", 4000);
+          }
+
           }
         } catch (err) {
           console.error(err);
