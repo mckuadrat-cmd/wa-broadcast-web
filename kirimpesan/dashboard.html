@@ -706,6 +706,52 @@
     }
   }
 
+    <!-- Modal hasil broadcast -->
+    <div
+      id="broadcastModal"
+      class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+    >
+      <div class="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl border border-slate-200 max-h-[80vh] flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-slate-800">
+            Hasil Broadcast Terbaru
+          </h3>
+          <button
+            id="broadcastModalClose"
+            type="button"
+            class="text-xs text-slate-500 hover:text-slate-700"
+          >
+            Tutup ✕
+          </button>
+        </div>
+    
+        <p id="broadcastSummaryText" class="text-xs text-slate-600 mb-3">
+          Ringkasan pengiriman akan tampil di sini.
+        </p>
+    
+        <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
+          <table class="min-w-full text-[11px]">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Info 1 / Nama</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Status Template</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
+              <!-- rows via JS -->
+            </tbody>
+          </table>
+        </div>
+    
+        <p class="mt-2 text-[11px] text-slate-500">
+          *Status pesan follow-up akan menyusul lewat webhook ketika penerima menekan quick reply (misal: BERSEDIA).
+        </p>
+      </div>
+    </div>
+
   // =======================
   // ADD VARIABLE BUTTON (Body Text builder)
   // =======================
@@ -873,6 +919,57 @@
       container.appendChild(wrapper);
     }
   }
+
+    // =======================
+    // BROADCAST RESULT MODAL
+    // =======================
+  
+    function openBroadcastModal(broadcastData) {
+      const modal   = document.getElementById("broadcastModal");
+      const closeBtn = document.getElementById("broadcastModalClose");
+      const bodyEl  = document.getElementById("broadcastModalBody");
+      const sumEl   = document.getElementById("broadcastSummaryText");
+      if (!modal || !bodyEl || !sumEl || !closeBtn) return;
+  
+      bodyEl.innerHTML = "";
+  
+      const results = Array.isArray(broadcastData.results) ? broadcastData.results : [];
+      let okCount = 0;
+      let failCount = 0;
+  
+      results.forEach((r, idx) => {
+        if (r.ok) okCount++; else failCount++;
+  
+        const tr = document.createElement("tr");
+  
+        const rec = recipients.find((x) => x.phone === r.phone) || {};
+        const info1 = rec.var1 || "-";
+  
+        tr.innerHTML = `
+          <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
+          <td class="px-2 py-1 font-mono text-slate-800">${r.phone || "-"}</td>
+          <td class="px-2 py-1 text-slate-700">${info1}</td>
+          <td class="px-2 py-1 ${r.ok ? "text-emerald-600" : "text-red-600"}">
+            ${r.ok ? "OK" : "FAILED"}
+          </td>
+          <td class="px-2 py-1 text-slate-500">
+            ${r.error ? (typeof r.error === "string" ? r.error : JSON.stringify(r.error).slice(0,80) + "...") : "-"}
+          </td>
+        `;
+        bodyEl.appendChild(tr);
+      });
+  
+      sumEl.textContent =
+        `Total: ${results.length} penerima · Sukses: ${okCount} · Gagal: ${failCount}`;
+  
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+  
+      closeBtn.onclick = () => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      };
+    }
 
   // =======================
   // DOM READY
@@ -1055,9 +1152,17 @@
           });
           const data = await res.json();
           outputEl.textContent = JSON.stringify(data, null, 2);
+        
+          if (res.ok && data.status === "ok") {
+            showToast("Success", "Broadcast selesai. Lihat ringkasan hasil.", "✅", 3500);
+            openBroadcastModal(data);
+          } else {
+            showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
+          }
         } catch (err) {
           console.error(err);
           outputEl.textContent = "Error: " + err.message;
+          showToast("Error", "Broadcast error: " + err.message, "⚠️", 4000);
         }
       });
 
