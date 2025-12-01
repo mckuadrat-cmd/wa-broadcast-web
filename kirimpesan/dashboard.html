@@ -328,6 +328,16 @@
                 />
               </div>
 
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-slate-600">Attachment filename (optional)</label>
+                <input
+                  id="followupAttachmentName"
+                  type="text"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  placeholder="Misal: Surat_Penerimaan_Pesat.pdf"
+                />
+              </div>
+
               <p class="text-[11px] text-slate-500">
                 Gunakan {{1}}, {{2}}, dst di Message Followup untuk mengambil nilai dari kolom setelah nomor di CSV.
                 Jika Attachment kosong tapi CSV punya kolom link di paling kanan, link tersebut akan dipakai untuk kirim PDF per orang.
@@ -1246,16 +1256,22 @@
           }
 
           // FOLLOWUP CONFIG
-          const followText = document.getElementById("followupText")?.value.trim() || "";
+          const followText  = document.getElementById("followupText")?.value.trim() || "";
           const followAttach = document.getElementById("followupAttachment")?.value.trim() || "";
-
+          const followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
+          
+          // Kalau followText kosong → webhook nonaktif (tidak kirim pesan lanjutan)
           if (followText) {
             const followup = { text: followText };
             if (followAttach) {
-              followup.static_media = {
-                type: "document",
+              const staticMedia = {
+                type: "document",   // kita anggap attachment utama berupa PDF
                 link: followAttach
               };
+              if (followAttachName) {
+                staticMedia.filename = followAttachName;  // <<-- di sini
+              }
+              followup.static_media = staticMedia;
             }
             bodyPayload.followup = followup;
           }
