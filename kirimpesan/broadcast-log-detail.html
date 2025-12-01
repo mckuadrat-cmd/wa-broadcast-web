@@ -204,9 +204,14 @@
           return;
         }
 
-        const log = data.log || {};
-        fillHeader(log);
-        renderCombinedTable(log);
+        // ⬇️ struktur yang benar: { log: { broadcast, recipients, followups } }
+        const log        = data.log || {};
+        const broadcast  = log.broadcast  || {};
+        const recipients = log.recipients || [];
+        const followups  = log.followups  || [];
+
+        fillHeader(broadcast, recipients, followups);
+        renderCombinedTable(recipients, followups);
 
         document.getElementById("bcStatusText").textContent = "Detail berhasil dimuat.";
         showToast("Detail berhasil dimuat.");
@@ -217,26 +222,27 @@
       }
     }
 
-    function fillHeader(log) {
-      document.getElementById("bcId").textContent         = log.id || "-";
-      document.getElementById("bcTime").textContent       = formatDateTime(log.created_at || log.at);
-      document.getElementById("bcTemplate").textContent   = log.template_name || "-";
-      document.getElementById("bcSenderPhone").textContent= log.sender_phone || "-";
-      document.getElementById("bcPhoneId").textContent    = log.phone_id || "-";
+    function fillHeader(broadcast, recipients, followups) {
+      document.getElementById("bcId").textContent       = broadcast.id || "-";
+      document.getElementById("bcTime").textContent     = formatDateTime(broadcast.created_at);
+      document.getElementById("bcTemplate").textContent = broadcast.template_name || "-";
+      document.getElementById("bcSenderPhone").textContent =
+        broadcast.sender_phone || "-";
+      document.getElementById("bcPhoneId").textContent =
+        broadcast.phone_number_id || "-";
       document.getElementById("bcFollowupStatus").textContent =
-        log.followup_active ? "Aktif" : "Nonaktif";
+        broadcast.followup_enabled ? "Aktif" : "Nonaktif";
+
+      // summary akan diisi di renderCombinedTable
     }
 
-    function renderCombinedTable(log) {
+    function renderCombinedTable(recipients, followups) {
       const body = document.getElementById("combinedBody");
       body.innerHTML = "";
 
-      const recs = Array.isArray(log.recipients) ? log.recipients : [];
-      const fols = Array.isArray(log.followups)  ? log.followups  : [];
-
       // map follow-up by phone
       const folMap = {};
-      fols.forEach(f => {
+      followups.forEach(f => {
         if (!f.phone) return;
         folMap[String(f.phone)] = f;
       });
@@ -246,33 +252,36 @@
       let failCount = 0;
       let followOk = 0;
 
-      recs.forEach((r, idx) => {
+      recipients.forEach((r, idx) => {
         total++;
-        if (r.ok) okCount++; else failCount++;
 
-        const phoneKey = String(r.phone || "");
-        const f = folMap[phoneKey] || {};
+        const ok   = !!r.template_ok;
+        const http = r.template_http_status;
+        const err  = r.template_error;
+        const vars = r.vars_json;
+        const f    = folMap[String(r.phone || "")] || {};
 
+        if (ok) okCount++; else failCount++;
         if (f.status === "ok") followOk++;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
           <td class="px-2 py-1 font-mono text-slate-800">${safe(r.phone)}</td>
-          <td class="px-2 py-1 text-slate-700">${formatVars(r.vars || r.var || r.var1 || r.data)}</td>
+          <td class="px-2 py-1 text-slate-700">${formatVars(vars)}</td>
           <td class="px-2 py-1 text-slate-600 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
             ${safe(r.follow_media)}
           </td>
-          <td class="px-2 py-1 text-slate-600">${safe(r.http_status || r.http_code)}</td>
-          <td class="px-2 py-1 ${r.ok ? "text-emerald-600" : "text-red-600"}">
-            ${r.ok ? "OK" : "FAILED"}
+          <td class="px-2 py-1 text-slate-600">${safe(http)}</td>
+          <td class="px-2 py-1 ${ok ? "text-emerald-600" : "text-red-600"}">
+            ${ok ? "OK" : "FAILED"}
           </td>
           <td class="px-2 py-1 text-slate-500 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
             ${
-              r.error
-                ? (typeof r.error === "string"
-                    ? r.error
-                    : JSON.stringify(r.error).slice(0, 80) + "...")
+              err
+                ? (typeof err === "string"
+                    ? err
+                    : JSON.stringify(err).slice(0, 80) + "...")
                 : "-"
             }
           </td>
