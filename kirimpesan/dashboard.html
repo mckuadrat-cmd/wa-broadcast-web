@@ -1157,6 +1157,54 @@
       }, intervalMs);
     }
 
+    function applyBroadcastResultsToModal(broadcastData) {
+      const results = Array.isArray(broadcastData.results) ? broadcastData.results : [];
+      const sumEl   = document.getElementById("broadcastSummaryText");
+      if (!window._bcRowByPhone) window._bcRowByPhone = {};
+    
+      let okCount = 0;
+      let failCount = 0;
+    
+      results.forEach((r) => {
+        const phone = String(r.phone || "");
+        const tr = window._bcRowByPhone[phone];
+        if (!tr) return;
+    
+        const statusTd = tr.querySelector('[data-col="status"]');
+        const noteTd   = tr.querySelector('[data-col="note"]');
+    
+        if (r.ok) {
+          okCount++;
+          if (statusTd) {
+            statusTd.textContent = "OK";
+            statusTd.className = "px-2 py-1 text-emerald-600";
+          }
+          if (noteTd) noteTd.textContent = "-";
+        } else {
+          failCount++;
+          if (statusTd) {
+            statusTd.textContent = "FAILED";
+            statusTd.className = "px-2 py-1 text-red-600";
+          }
+          if (noteTd) {
+            const errStr =
+              r.error
+                ? (typeof r.error === "string"
+                    ? r.error
+                    : JSON.stringify(r.error).slice(0, 80) + "...")
+                : "-";
+            noteTd.textContent = errStr;
+          }
+        }
+      });
+    
+      if (sumEl) {
+        const total = results.length;
+        sumEl.textContent =
+          `Total: ${total} penerima · Sukses: ${okCount} · Gagal: ${failCount}`;
+      }
+    }
+
     // =======================
     // DOM READY
     // =======================
@@ -1357,6 +1405,13 @@
             bodyPayload.followup = followup;
           }
 
+            // === BUKA MODAL DULU DENGAN STATUS "MENGIRIM..." ===
+            const pendingRows = recipients.map((r) => ({
+              phone: r.phone,
+              ok: null
+            }));
+            openBroadcastModal({ results: pendingRows }, { mode: "pending" });
+
           outputEl.textContent = `Sending to ${recipients.length} recipients...`;
 
           try {
@@ -1367,7 +1422,7 @@
             });
             const data = await res.json();
             outputEl.textContent = JSON.stringify(data, null, 2);
-
+         
             if (res.ok && data.status === "ok") {
               showToast("Success", "Broadcast selesai. Lihat ringkasan hasil.", "✅", 3500);
               // followText sudah didefinisikan di atas (isi Message Followup)
