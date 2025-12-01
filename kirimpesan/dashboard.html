@@ -490,16 +490,16 @@
 
       <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
         <table class="min-w-full text-[11px]">
-        <thead class="bg-slate-50 border-b border-slate-200">
-          <tr>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama</th>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">Status</th>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan Follow-up</th>
-            <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
-          </tr>
-        </thead>
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Status</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan Follow-up</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
+            </tr>
+          </thead>
           <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
             <!-- rows via JS -->
           </tbody>
@@ -1040,31 +1040,71 @@
     // BROADCAST RESULT MODAL
     // =======================
     let broadcastModalRowMap = {};
+
+    // Modal awal: status "Sending..." per nomor
+    function openBroadcastPendingModal(rows) {
+      const modal    = document.getElementById("broadcastModal");
+      const closeBtn = document.getElementById("broadcastModalClose");
+      const bodyEl   = document.getElementById("broadcastModalBody");
+      const sumEl    = document.getElementById("broadcastSummaryText");
+      if (!modal || !bodyEl || !sumEl || !closeBtn) return;
+
+      bodyEl.innerHTML = "";
+      broadcastModalRowMap = {};
+
+      rows.forEach((r, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
+          <td class="px-2 py-1 font-mono text-slate-800">${r.phone}</td>
+          <td class="px-2 py-1 text-slate-700">-</td>
+          <td class="px-2 py-1 text-slate-600">Sending...</td>
+          <td class="px-2 py-1 text-slate-600 followup-cell">-</td>
+          <td class="px-2 py-1 text-slate-500">-</td>
+        `;
+        bodyEl.appendChild(tr);
+        if (r.phone) {
+          broadcastModalRowMap[String(r.phone)] = tr;
+        }
+      });
+
+      sumEl.textContent = `Mengirim ke ${rows.length} penerima...`;
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      closeBtn.onclick = () => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      };
+    }
+
+    // Modal final: setelah backend respon
     function openBroadcastModal(broadcastData, hasFollowup) {
       const modal    = document.getElementById("broadcastModal");
       const closeBtn = document.getElementById("broadcastModalClose");
       const bodyEl   = document.getElementById("broadcastModalBody");
       const sumEl    = document.getElementById("broadcastSummaryText");
       if (!modal || !bodyEl || !sumEl || !closeBtn) return;
-    
+
       bodyEl.innerHTML = "";
-      broadcastModalRowMap = {};   // reset
-    
+      broadcastModalRowMap = {};
+
       const results = Array.isArray(broadcastData.results) ? broadcastData.results : [];
       let okCount = 0;
       let failCount = 0;
-    
+
       const followupLabelDefault = hasFollowup
         ? "Belum (menunggu reply)"
         : "-";
-    
+
       results.forEach((r, idx) => {
         if (r.ok) okCount++; else failCount++;
-    
+
         const tr   = document.createElement("tr");
         const rec  = recipients.find((x) => x.phone === r.phone) || {};
         const info1 = rec.var1 || "-";
-    
+
         tr.innerHTML = `
           <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
           <td class="px-2 py-1 font-mono text-slate-800">${r.phone || "-"}</td>
@@ -1080,33 +1120,30 @@
               r.error
                 ? (typeof r.error === "string"
                     ? r.error
-                    : JSON.stringify(r.error).slice(0, 80) + "..."
-                  )
+                    : JSON.stringify(r.error).slice(0, 80) + "...")
                 : "-"
             }
           </td>
         `;
-    
+
         bodyEl.appendChild(tr);
-    
-        // simpan mapping supaya bisa di-update saat polling
+
         if (r.phone) {
           broadcastModalRowMap[String(r.phone)] = tr;
         }
       });
-    
+
       sumEl.textContent =
         `Total: ${results.length} penerima · Sukses: ${okCount} · Gagal: ${failCount}`;
-    
+
       modal.classList.remove("hidden");
       modal.classList.add("flex");
-    
+
       closeBtn.onclick = () => {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
       };
-    
-      // kalau tidak ada follow-up, tidak perlu polling
+
       if (hasFollowup && broadcastData.broadcast_id) {
         startFollowupWatcher(broadcastData.broadcast_id);
       }
@@ -1116,31 +1153,31 @@
       const intervalMs   = 5000;   // cek tiap 5 detik
       const maxAttempts  = 60;     // ±5 menit
       let attempts       = 0;
-    
+
       const timerId = setInterval(async () => {
         attempts++;
         if (attempts > maxAttempts) {
           clearInterval(timerId);
           return;
         }
-    
+
         try {
           const res  = await fetch(BACKEND_LOG_DETAIL_URL + encodeURIComponent(broadcastId));
           if (!res.ok) return;
-    
+
           const data = await res.json();
           if (data.status !== "ok") return;
-    
+
           const followups = (data.log && data.log.followups) || [];
-    
+
           followups.forEach((f) => {
             const phone = String(f.phone || "");
             const tr    = broadcastModalRowMap[phone];
             if (!tr) return;
-    
+
             const cell = tr.querySelector("td.followup-cell");
             if (!cell) return;
-    
+
             if (f.status === "ok") {
               cell.textContent = "Terkirim";
               cell.classList.remove("text-slate-600", "text-red-600");
@@ -1155,54 +1192,6 @@
           console.warn("followup watcher error:", err);
         }
       }, intervalMs);
-    }
-
-    function applyBroadcastResultsToModal(broadcastData) {
-      const results = Array.isArray(broadcastData.results) ? broadcastData.results : [];
-      const sumEl   = document.getElementById("broadcastSummaryText");
-      if (!window._bcRowByPhone) window._bcRowByPhone = {};
-    
-      let okCount = 0;
-      let failCount = 0;
-    
-      results.forEach((r) => {
-        const phone = String(r.phone || "");
-        const tr = window._bcRowByPhone[phone];
-        if (!tr) return;
-    
-        const statusTd = tr.querySelector('[data-col="status"]');
-        const noteTd   = tr.querySelector('[data-col="note"]');
-    
-        if (r.ok) {
-          okCount++;
-          if (statusTd) {
-            statusTd.textContent = "OK";
-            statusTd.className = "px-2 py-1 text-emerald-600";
-          }
-          if (noteTd) noteTd.textContent = "-";
-        } else {
-          failCount++;
-          if (statusTd) {
-            statusTd.textContent = "FAILED";
-            statusTd.className = "px-2 py-1 text-red-600";
-          }
-          if (noteTd) {
-            const errStr =
-              r.error
-                ? (typeof r.error === "string"
-                    ? r.error
-                    : JSON.stringify(r.error).slice(0, 80) + "...")
-                : "-";
-            noteTd.textContent = errStr;
-          }
-        }
-      });
-    
-      if (sumEl) {
-        const total = results.length;
-        sumEl.textContent =
-          `Total: ${total} penerima · Sukses: ${okCount} · Gagal: ${failCount}`;
-      }
     }
 
     // =======================
@@ -1356,7 +1345,7 @@
           const outputEl     = document.getElementById("output");
           const sel          = document.getElementById("templateSelect");
           const templateName = sel.value;
-      
+
           if (!templateName) {
             alert("Please select a template.");
             return;
@@ -1365,22 +1354,22 @@
             alert("Add at least one recipient.");
             return;
           }
-      
+
           const bodyPayload = {
             template_name: templateName,
             rows: recipients
           };
-      
+
           if (currentSenderPhone) {
             bodyPayload.sender_phone = currentSenderPhone;
           }
-      
-          // 🔹 AMBIL NILAI JADWAL
+
+          // Jadwal
           const schedVal = document.getElementById("schedule").value;
           if (schedVal) {
             const dt = new Date(schedVal);
             if (!isNaN(dt)) {
-              bodyPayload.schedule_at = dt.toISOString();   // kirim ke backend
+              bodyPayload.schedule_at = dt.toISOString();
             }
           }
 
@@ -1388,29 +1377,27 @@
           const followText  = document.getElementById("followupText")?.value.trim() || "";
           const followAttach = document.getElementById("followupAttachment")?.value.trim() || "";
           const followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
-          
-          // Kalau followText kosong → webhook nonaktif (tidak kirim pesan lanjutan)
+
           if (followText) {
             const followup = { text: followText };
             if (followAttach) {
               const staticMedia = {
-                type: "document",   // kita anggap attachment utama berupa PDF
+                type: "document",
                 link: followAttach
               };
               if (followAttachName) {
-                staticMedia.filename = followAttachName;  // <<-- di sini
+                staticMedia.filename = followAttachName;
               }
               followup.static_media = staticMedia;
             }
             bodyPayload.followup = followup;
           }
 
-            // === BUKA MODAL DULU DENGAN STATUS "MENGIRIM..." ===
-            const pendingRows = recipients.map((r) => ({
-              phone: r.phone,
-              ok: null
-            }));
-            openBroadcastModal({ results: pendingRows }, { mode: "pending" });
+          // === BUKA MODAL DULU DENGAN STATUS "MENGIRIM..." ===
+          const pendingRows = recipients.map((r) => ({
+            phone: r.phone
+          }));
+          openBroadcastPendingModal(pendingRows);
 
           outputEl.textContent = `Sending to ${recipients.length} recipients...`;
 
@@ -1422,10 +1409,9 @@
             });
             const data = await res.json();
             outputEl.textContent = JSON.stringify(data, null, 2);
-         
+
             if (res.ok && data.status === "ok") {
               showToast("Success", "Broadcast selesai. Lihat ringkasan hasil.", "✅", 3500);
-              // followText sudah didefinisikan di atas (isi Message Followup)
               const hasFollowup = !!followText;
               openBroadcastModal(data, hasFollowup);
             } else {
@@ -1457,7 +1443,6 @@
             return;
           }
 
-          // ambil contoh pertama (kalau ada)
           const exampleInput = document.querySelector("#tpl_examples_container input[data-example-index]");
           const example_1 = exampleInput ? exampleInput.value.trim() : "";
 
