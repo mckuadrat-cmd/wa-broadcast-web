@@ -490,15 +490,16 @@
 
       <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
         <table class="min-w-full text-[11px]">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Info 1 / Nama</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Status Template</th>
-              <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
-            </tr>
-          </thead>
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama</th>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">Status</th>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan Follow-up</th>
+            <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
+          </tr>
+        </thead>
           <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
             <!-- rows via JS -->
           </tbody>
@@ -563,6 +564,7 @@
     const BACKEND_TEMPLATES_URL       = API_BASE + "templates";
     const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "templates/create";
     const BACKEND_SENDERS_URL         = API_BASE + "senders";
+    const BACKEND_LOG_DETAIL_URL      = API_BASE + "broadcast/logs/";
 
     let templates  = [];
     let recipients = []; // { phone, var1, var2, ... }
@@ -1037,28 +1039,32 @@
     // =======================
     // BROADCAST RESULT MODAL
     // =======================
-
-    function openBroadcastModal(broadcastData) {
-      const modal   = document.getElementById("broadcastModal");
+    let broadcastModalRowMap = {};
+    function openBroadcastModal(broadcastData, hasFollowup) {
+      const modal    = document.getElementById("broadcastModal");
       const closeBtn = document.getElementById("broadcastModalClose");
-      const bodyEl  = document.getElementById("broadcastModalBody");
-      const sumEl   = document.getElementById("broadcastSummaryText");
+      const bodyEl   = document.getElementById("broadcastModalBody");
+      const sumEl    = document.getElementById("broadcastSummaryText");
       if (!modal || !bodyEl || !sumEl || !closeBtn) return;
-
+    
       bodyEl.innerHTML = "";
-
+      broadcastModalRowMap = {};   // reset
+    
       const results = Array.isArray(broadcastData.results) ? broadcastData.results : [];
       let okCount = 0;
       let failCount = 0;
-
+    
+      const followupLabelDefault = hasFollowup
+        ? "Belum (menunggu reply)"
+        : "-";
+    
       results.forEach((r, idx) => {
         if (r.ok) okCount++; else failCount++;
-
-        const tr = document.createElement("tr");
-
-        const rec = recipients.find((x) => x.phone === r.phone) || {};
+    
+        const tr   = document.createElement("tr");
+        const rec  = recipients.find((x) => x.phone === r.phone) || {};
         const info1 = rec.var1 || "-";
-
+    
         tr.innerHTML = `
           <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
           <td class="px-2 py-1 font-mono text-slate-800">${r.phone || "-"}</td>
@@ -1066,23 +1072,89 @@
           <td class="px-2 py-1 ${r.ok ? "text-emerald-600" : "text-red-600"}">
             ${r.ok ? "OK" : "FAILED"}
           </td>
+          <td class="px-2 py-1 text-slate-600 followup-cell">
+            ${followupLabelDefault}
+          </td>
           <td class="px-2 py-1 text-slate-500">
-            ${r.error ? (typeof r.error === "string" ? r.error : JSON.stringify(r.error).slice(0,80) + "...") : "-"}
+            ${
+              r.error
+                ? (typeof r.error === "string"
+                    ? r.error
+                    : JSON.stringify(r.error).slice(0, 80) + "..."
+                  )
+                : "-"
+            }
           </td>
         `;
+    
         bodyEl.appendChild(tr);
+    
+        // simpan mapping supaya bisa di-update saat polling
+        if (r.phone) {
+          broadcastModalRowMap[String(r.phone)] = tr;
+        }
       });
-
+    
       sumEl.textContent =
         `Total: ${results.length} penerima · Sukses: ${okCount} · Gagal: ${failCount}`;
-
+    
       modal.classList.remove("hidden");
       modal.classList.add("flex");
-
+    
       closeBtn.onclick = () => {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
       };
+    
+      // kalau tidak ada follow-up, tidak perlu polling
+      if (hasFollowup && broadcastData.broadcast_id) {
+        startFollowupWatcher(broadcastData.broadcast_id);
+      }
+    }
+
+    function startFollowupWatcher(broadcastId) {
+      const intervalMs   = 5000;   // cek tiap 5 detik
+      const maxAttempts  = 60;     // ±5 menit
+      let attempts       = 0;
+    
+      const timerId = setInterval(async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+          clearInterval(timerId);
+          return;
+        }
+    
+        try {
+          const res  = await fetch(BACKEND_LOG_DETAIL_URL + encodeURIComponent(broadcastId));
+          if (!res.ok) return;
+    
+          const data = await res.json();
+          if (data.status !== "ok") return;
+    
+          const followups = (data.log && data.log.followups) || [];
+    
+          followups.forEach((f) => {
+            const phone = String(f.phone || "");
+            const tr    = broadcastModalRowMap[phone];
+            if (!tr) return;
+    
+            const cell = tr.querySelector("td.followup-cell");
+            if (!cell) return;
+    
+            if (f.status === "ok") {
+              cell.textContent = "Terkirim";
+              cell.classList.remove("text-slate-600", "text-red-600");
+              cell.classList.add("text-emerald-600");
+            } else if (f.status === "error") {
+              cell.textContent = "Gagal";
+              cell.classList.remove("text-slate-600", "text-emerald-600");
+              cell.classList.add("text-red-600");
+            }
+          });
+        } catch (err) {
+          console.warn("followup watcher error:", err);
+        }
+      }, intervalMs);
     }
 
     // =======================
@@ -1298,7 +1370,9 @@
 
             if (res.ok && data.status === "ok") {
               showToast("Success", "Broadcast selesai. Lihat ringkasan hasil.", "✅", 3500);
-              openBroadcastModal(data);
+              // followText sudah didefinisikan di atas (isi Message Followup)
+              const hasFollowup = !!followText;
+              openBroadcastModal(data, hasFollowup);
             } else {
               showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
             }
