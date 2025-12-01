@@ -2,10 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Detail Broadcast - MCKuadrat WA API</title>
+  <title>Detail Broadcast – MCKuadrat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -17,9 +15,8 @@
           }
         }
       }
-    }
+    };
   </script>
-
   <style>
     body {
       background: linear-gradient(to bottom, #ffe9df, #ffffff 40%, #ffffff 60%, #ffe9df);
@@ -28,340 +25,289 @@
 </head>
 <body class="min-h-screen flex items-center justify-center px-4 text-slate-900">
 
-  <!-- Guard login -->
-  <script>
-    (function () {
-      const logged = localStorage.getItem("sb_logged_in");
-      const school = localStorage.getItem("sb_school");
-      if (logged !== "1" || !school) {
-        window.location.href = "/kirimpesan/";
-      }
-    })();
-  </script>
-
-  <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-    <!-- Top bar -->
-    <header class="w-full border-b border-slate-200 bg-white">
-      <div class="mx-auto flex items-center justify-between px-6 py-4">
-        <div class="flex items-center gap-3">
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7542e]/10">
-            <span class="text-2xl">📋</span>
-          </div>
-          <div>
-            <div class="text-sm font-semibold">Detail Broadcast</div>
-            <div class="text-xs text-slate-500">
-              Rincian pengiriman & follow-up untuk 1 broadcast
-            </div>
+  <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden my-8">
+    <!-- HEADER -->
+    <header class="border-b border-slate-200 bg-white px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7542e]/10">
+          <span class="text-2xl">📊</span>
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Detail Broadcast</div>
+          <div class="text-xs text-slate-500">
+            Rincian pengiriman &amp; follow-up untuk 1 broadcast
           </div>
         </div>
-
-        <div class="hidden text-xs sm:flex sm:items-center sm:gap-4 text-slate-500">
-          <span>
-            Hai, <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
-          </span>
-
+      </div>
+      <div class="text-right text-xs">
+        <div class="text-slate-500">Hai, <span id="schoolLabel" class="font-semibold">Sekolah Pesat Bogor</span></div>
+        <div class="flex items-center justify-end gap-3 mt-1">
           <a href="/kirimpesan/broadcast-log.html"
-             class="font-semibold text-mcgreen underline hover:text-mcdark">
-            &larr; Kembali ke Riwayat
+             class="text-mcgreen font-semibold underline">
+            ← Kembali ke Riwayat
           </a>
-
-          <button onclick="logout()" class="font-semibold text-red-500 underline">
+          <button
+            onclick="logout()"
+            class="text-red-500 font-semibold underline">
             Logout
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Main -->
-    <main class="px-6 py-6 bg-white">
-      <!-- Summary -->
-      <section
-        class="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 sm:grid-cols-3"
-      >
-        <div>
-          <p class="font-semibold text-slate-800 mb-1">Informasi Broadcast</p>
-          <p><span class="text-slate-500">ID:</span> <span id="bId">-</span></p>
-          <p><span class="text-slate-500">Waktu:</span> <span id="bCreated">-</span></p>
-          <p><span class="text-slate-500">Template:</span> <span id="bTemplate">-</span></p>
-        </div>
-        <div>
-          <p class="font-semibold text-slate-800 mb-1">Sender & Follow-up</p>
-          <p><span class="text-slate-500">Sender:</span> <span id="bSender">-</span></p>
-          <p><span class="text-slate-500">Follow-up:</span> <span id="bFollowup">-</span></p>
-          <p><span class="text-slate-500">Phone ID:</span> <span id="bPhoneId">-</span></p>
-        </div>
-        <div class="flex flex-col justify-between gap-2 sm:items-end">
-          <div class="space-y-1">
-            <p class="font-semibold text-slate-800">Ringkasan Penerima</p>
-            <p><span class="text-slate-500">Total:</span> <span id="sumTotal">0</span></p>
-            <p class="text-emerald-700">
-              <span class="text-slate-500">OK:</span> <span id="sumOk">0</span>
-            </p>
-            <p class="text-red-600">
-              <span class="text-slate-500">Gagal:</span> <span id="sumFail">0</span>
-            </p>
-            <p>
-              <span class="text-slate-500">Follow-up terkirim:</span>
-              <span id="sumFollow">0</span>
-            </p>
+    <!-- BODY -->
+    <main class="px-6 py-5 space-y-4">
+      <!-- Info broadcast -->
+      <section class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs md:text-sm">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <p class="font-semibold text-slate-800 mb-1">Informasi Broadcast</p>
+            <p><span class="text-slate-500">ID:</span> <span id="bcId" class="font-mono">-</span></p>
+            <p><span class="text-slate-500">Waktu:</span> <span id="bcTime">-</span></p>
+            <p><span class="text-slate-500">Template:</span> <span id="bcTemplate">-</span></p>
           </div>
-
-          <button
-            id="btnDownloadCsv"
-            type="button"
-            class="inline-flex items-center rounded-md bg-[#f7542e] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#e04825]"
-          >
-            ⬇ Download CSV Laporan
-          </button>
+          <div>
+            <p class="font-semibold text-slate-800 mb-1">Sender &amp; Follow-up</p>
+            <p><span class="text-slate-500">Sender:</span> <span id="bcSenderPhone">-</span></p>
+            <p><span class="text-slate-500">Phone ID:</span> <span id="bcPhoneId" class="font-mono">-</span></p>
+            <p><span class="text-slate-500">Follow-up:</span> <span id="bcFollowupStatus">-</span></p>
+          </div>
+          <div>
+            <p class="font-semibold text-slate-800 mb-1">Ringkasan Penerima</p>
+            <p>Total: <span id="sumTotal" class="font-semibold">0</span></p>
+            <p>OK: <span id="sumOk" class="text-emerald-600 font-semibold">0</span></p>
+            <p>Gagal: <span id="sumFail" class="text-red-500 font-semibold">0</span></p>
+            <p>Follow-up terkirim: <span id="sumFollowOk" class="text-emerald-600 font-semibold">0</span></p>
+          </div>
         </div>
       </section>
 
-      <!-- Status -->
-      <div
-        id="detailStatus"
-        class="mb-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
-      >
-        Memuat detail broadcast...
-      </div>
-
-      <!-- Recipients table -->
-      <section class="mb-4">
-        <div class="mb-2 flex items-center justify-between">
-          <h2 class="text-xs font-semibold text-slate-800">
-            Data Penerima & Status Template
-          </h2>
-          <span class="text-[11px] text-slate-500">
-            Scroll ke kanan bila tabel melebar.
-          </span>
+      <!-- Tabel gabungan -->
+      <section class="rounded-xl border border-slate-200 bg-white p-4 text-[11px] md:text-xs">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-semibold text-slate-800">Data Penerima, Status Template &amp; Follow-up</h2>
+          <p id="bcStatusText" class="text-[11px] text-slate-500">Detail berhasil dimuat.</p>
         </div>
 
-        <div class="overflow-auto border border-slate-200 rounded-xl max-h-[40vh]">
-          <table class="min-w-full text-[11px]">
+        <div class="overflow-auto border border-slate-200 rounded-lg">
+          <table class="min-w-full">
             <thead class="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">#</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Nomor</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Var</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Follow Media</th>
-                <th class="px-3 py-2 text-center font-semibold text-slate-600">HTTP</th>
-                <th class="px-3 py-2 text-center font-semibold text-slate-600">OK?</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Error</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Var (Template)</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Follow Media (Template)</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">HTTP</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">OK?</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Error Template</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Waktu Follow-up</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Has Media</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Media Link</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Status Follow-up</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Error Follow-up</th>
               </tr>
             </thead>
-            <tbody id="recipientsBody" class="divide-y divide-slate-100">
-              <!-- via JS -->
+            <tbody id="combinedBody" class="divide-y divide-slate-100">
+              <!-- rows via JS -->
             </tbody>
           </table>
         </div>
-      </section>
 
-      <!-- Follow-up table -->
-      <section>
-        <div class="mb-2 flex items-center justify-between">
-          <h2 class="text-xs font-semibold text-slate-800">
-            Riwayat Pesan Follow-up (Quick Reply)
-          </h2>
-        </div>
-
-        <div class="overflow-auto border border-slate-200 rounded-xl max-h-[30vh]">
-          <table class="min-w-full text-[11px]">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">#</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Waktu</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Nomor</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Has Media</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Media Link</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Status</th>
-                <th class="px-3 py-2 text-left font-semibold text-slate-600">Error</th>
-              </tr>
-            </thead>
-            <tbody id="followupBody" class="divide-y divide-slate-100">
-              <!-- via JS -->
-            </tbody>
-          </table>
-        </div>
+        <p class="mt-2 text-[11px] text-slate-500">
+          *Setiap baris mewakili 1 nomor. Kolom kiri adalah status pengiriman template,
+          kolom kanan adalah status pesan follow-up (quick reply).
+        </p>
       </section>
     </main>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast simple -->
   <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
-    <div
-      class="flex items-start gap-2 rounded-lg bg-slate-900/90 px-4 py-3 text-sm text-white shadow-lg"
-    >
-      <div id="toastIcon" class="mt-0.5 text-lg">⏳</div>
-      <div>
-        <p id="toastTitle" class="text-sm font-semibold">Status</p>
-        <p id="toastMessage" class="mt-0.5 text-xs opacity-80">
-          ...
-        </p>
-      </div>
+    <div class="rounded-lg bg-slate-900/90 px-3 py-2 text-xs text-white shadow-lg">
+      <span id="toastText">Loading...</span>
     </div>
   </div>
 
-<script>
-  const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
+  <script>
+    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
+    const BACKEND_LOG_DETAIL_URL = API_BASE + "broadcast/logs/";
 
-  function logout() {
-    localStorage.removeItem("sb_logged_in");
-    localStorage.removeItem("sb_school");
-    window.location.href = "/kirimpesan/";
-  }
-
-  // label school
-  (function () {
-    const storedSchool = localStorage.getItem("sb_school") || "sekolahpesatbogor";
-    const SCHOOL_MAP = { "sekolahpesatbogor": "Sekolah Pesat Bogor" };
-    const label = SCHOOL_MAP[storedSchool] || storedSchool;
-    const el = document.getElementById("schoolLabel");
-    if (el) el.textContent = label;
-  })();
-
-  function showToast(title, message, icon = "⏳", duration = 2500) {
-    const toast = document.getElementById("toast");
-    const tEl   = document.getElementById("toastTitle");
-    const mEl   = document.getElementById("toastMessage");
-    const iEl   = document.getElementById("toastIcon");
-    if (!toast || !tEl || !mEl || !iEl) return;
-    tEl.textContent = title;
-    mEl.textContent = message;
-    iEl.textContent = icon;
-    toast.classList.remove("hidden");
-
-    clearTimeout(showToast._id);
-    showToast._id = setTimeout(() => {
-      toast.classList.add("hidden");
-    }, duration);
-  }
-
-  function formatDateTime(iso) {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString();
-  }
-
-  function shortError(err) {
-    if (!err) return "-";
-    if (typeof err === "string") return err.slice(0, 80) + (err.length > 80 ? "..." : "");
-    try {
-      const s = JSON.stringify(err);
-      return s.slice(0, 80) + (s.length > 80 ? "..." : "");
-    } catch (e) {
-      return "-";
-    }
-  }
-
-  async function loadDetail() {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    const statusEl = document.getElementById("detailStatus");
-
-    if (!id) {
-      statusEl.textContent = "Parameter ?id= tidak ditemukan di URL.";
-      showToast("Error", "ID broadcast tidak ada di URL.", "⚠️", 3000);
-      return;
+    function showToast(msg, duration = 2500) {
+      const el = document.getElementById("toast");
+      const txt = document.getElementById("toastText");
+      if (!el || !txt) return;
+      txt.textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => {
+        el.classList.add("hidden");
+      }, duration);
     }
 
-    document.getElementById("bId").textContent = id;
+    function logout() {
+      localStorage.removeItem("sb_logged_in");
+      localStorage.removeItem("sb_school");
+      window.location.href = "/kirimpesan/";
+    }
 
-    // set link download CSV
-    const btnCsv = document.getElementById("btnDownloadCsv");
-    btnCsv.onclick = () => {
-      window.location.href = API_BASE + "broadcast/logs/" + encodeURIComponent(id) + "/csv";
-    };
+    (function setSchoolLabel() {
+      const storedSchool = localStorage.getItem("sb_school") || "sekolahpesatbogor";
+      const SCHOOL_MAP = { "sekolahpesatbogor": "Sekolah Pesat Bogor" };
+      const label = SCHOOL_MAP[storedSchool] || storedSchool;
+      const el = document.getElementById("schoolLabel");
+      if (el) el.textContent = label;
+    })();
 
-    statusEl.textContent = "Mengambil data dari server...";
+    function formatDateTime(str) {
+      if (!str) return "-";
+      const d = new Date(str);
+      if (isNaN(d.getTime())) return str;
+      return d.toLocaleString("id-ID");
+    }
 
-    try {
-      const res  = await fetch(API_BASE + "broadcast/logs/" + encodeURIComponent(id));
-      const data = await res.json();
+    function safe(obj, def = "-") {
+      if (obj === null || typeof obj === "undefined" || obj === "") return def;
+      return obj;
+    }
 
-      if (!res.ok || data.status !== "ok") {
-        statusEl.textContent = "Gagal memuat detail broadcast.";
-        showToast("Error", "Gagal memuat detail.", "⚠️", 3000);
-        console.error("Detail error:", data);
+    function formatVars(vars) {
+      if (!vars) return "-";
+      if (typeof vars === "string") return vars;
+      if (Array.isArray(vars)) return vars.join(" | ");
+      if (typeof vars === "object") {
+        return Object.keys(vars)
+          .sort()
+          .map(k => `${k}: ${vars[k]}`)
+          .join(" | ") || "-";
+      }
+      return String(vars);
+    }
+
+    async function loadBroadcastDetail() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) {
+        showToast("ID broadcast tidak ditemukan di URL");
         return;
       }
 
-      const log = data.log || {};
-      const b   = log.broadcast || {};
-      const recipients = Array.isArray(log.recipients) ? log.recipients : [];
-      const followups  = Array.isArray(log.followups) ? log.followups : [];
+      showToast("Memuat detail broadcast...");
 
-      document.getElementById("bCreated").textContent  = formatDateTime(b.created_at);
-      document.getElementById("bTemplate").textContent = b.template_name || "-";
-      document.getElementById("bSender").textContent   = b.sender_phone || "-";
-      document.getElementById("bFollowup").textContent = b.followup_enabled ? "Aktif" : "Nonaktif";
-      document.getElementById("bPhoneId").textContent  = b.phone_number_id || "-";
+      try {
+        const res = await fetch(BACKEND_LOG_DETAIL_URL + encodeURIComponent(id));
+        const data = await res.json();
 
-      const total  = recipients.length;
-      const ok     = recipients.filter((r) => r.template_ok).length;
-      const failed = total - ok;
-      const fCount = followups.length;
+        if (!res.ok || data.status !== "ok") {
+          console.error("detail error:", data);
+          document.getElementById("bcStatusText").textContent = "Gagal memuat detail.";
+          showToast("Gagal memuat detail.");
+          return;
+        }
 
-      document.getElementById("sumTotal").textContent  = total;
-      document.getElementById("sumOk").textContent     = ok;
-      document.getElementById("sumFail").textContent   = failed;
-      document.getElementById("sumFollow").textContent = fCount;
+        const log = data.log || {};
+        fillHeader(log);
+        renderCombinedTable(log);
 
-      statusEl.textContent = "Detail berhasil dimuat.";
-
-      // --- recipients table ---
-      const bodyRec = document.getElementById("recipientsBody");
-      bodyRec.innerHTML = "";
-
-      recipients.forEach((r, idx) => {
-        const vars = r.vars_json || {};
-        const varList = Object.keys(vars)
-          .sort()
-          .map((k) => `${k}: ${vars[k]}`)
-          .join(" · ");
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
-          <td class="px-3 py-1.5 font-mono text-slate-800">${r.phone || "-"}</td>
-          <td class="px-3 py-1.5 text-slate-700">${varList || "-"}</td>
-          <td class="px-3 py-1.5 text-slate-600">${r.follow_media || "-"}</td>
-          <td class="px-3 py-1.5 text-center text-slate-700">${r.template_http_status || "-"}</td>
-          <td class="px-3 py-1.5 text-center ${r.template_ok ? "text-emerald-600" : "text-red-600"}">
-            ${r.template_ok ? "OK" : "FAIL"}
-          </td>
-          <td class="px-3 py-1.5 text-slate-500">${shortError(r.template_error)}</td>
-        `;
-        bodyRec.appendChild(tr);
-      });
-
-      // --- followup table ---
-      const bodyF = document.getElementById("followupBody");
-      bodyF.innerHTML = "";
-
-      followups.forEach((f, idx) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
-          <td class="px-3 py-1.5 text-slate-700">${formatDateTime(f.at)}</td>
-          <td class="px-3 py-1.5 font-mono text-slate-800">${f.phone || "-"}</td>
-          <td class="px-3 py-1.5 text-slate-700">${f.has_media ? "Ya" : "Tidak"}</td>
-          <td class="px-3 py-1.5 text-slate-600">${f.media_link || "-"}</td>
-          <td class="px-3 py-1.5 text-slate-700">${f.status || "-"}</td>
-          <td class="px-3 py-1.5 text-slate-500">${shortError(f.error)}</td>
-        `;
-        bodyF.appendChild(tr);
-      });
-
-      showToast("Loaded", "Detail broadcast berhasil dimuat.", "✅", 2000);
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Error koneksi ke server.";
-      showToast("Error", "Tidak bisa terhubung ke server.", "⚠️", 3000);
+        document.getElementById("bcStatusText").textContent = "Detail berhasil dimuat.";
+        showToast("Detail berhasil dimuat.");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("bcStatusText").textContent = "Error memuat detail.";
+        showToast("Error memuat detail.");
+      }
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", loadDetail);
-</script>
+    function fillHeader(log) {
+      document.getElementById("bcId").textContent         = log.id || "-";
+      document.getElementById("bcTime").textContent       = formatDateTime(log.created_at || log.at);
+      document.getElementById("bcTemplate").textContent   = log.template_name || "-";
+      document.getElementById("bcSenderPhone").textContent= log.sender_phone || "-";
+      document.getElementById("bcPhoneId").textContent    = log.phone_id || "-";
+      document.getElementById("bcFollowupStatus").textContent =
+        log.followup_active ? "Aktif" : "Nonaktif";
+    }
 
+    function renderCombinedTable(log) {
+      const body = document.getElementById("combinedBody");
+      body.innerHTML = "";
+
+      const recs = Array.isArray(log.recipients) ? log.recipients : [];
+      const fols = Array.isArray(log.followups)  ? log.followups  : [];
+
+      // map follow-up by phone
+      const folMap = {};
+      fols.forEach(f => {
+        if (!f.phone) return;
+        folMap[String(f.phone)] = f;
+      });
+
+      let total = 0;
+      let okCount = 0;
+      let failCount = 0;
+      let followOk = 0;
+
+      recs.forEach((r, idx) => {
+        total++;
+        if (r.ok) okCount++; else failCount++;
+
+        const phoneKey = String(r.phone || "");
+        const f = folMap[phoneKey] || {};
+
+        if (f.status === "ok") followOk++;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
+          <td class="px-2 py-1 font-mono text-slate-800">${safe(r.phone)}</td>
+          <td class="px-2 py-1 text-slate-700">${formatVars(r.vars || r.var || r.var1 || r.data)}</td>
+          <td class="px-2 py-1 text-slate-600 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
+            ${safe(r.follow_media)}
+          </td>
+          <td class="px-2 py-1 text-slate-600">${safe(r.http_status || r.http_code)}</td>
+          <td class="px-2 py-1 ${r.ok ? "text-emerald-600" : "text-red-600"}">
+            ${r.ok ? "OK" : "FAILED"}
+          </td>
+          <td class="px-2 py-1 text-slate-500 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
+            ${
+              r.error
+                ? (typeof r.error === "string"
+                    ? r.error
+                    : JSON.stringify(r.error).slice(0, 80) + "...")
+                : "-"
+            }
+          </td>
+          <td class="px-2 py-1 text-slate-600">${f.at ? formatDateTime(f.at) : "-"}</td>
+          <td class="px-2 py-1 text-slate-600">${typeof f.has_media === "boolean" ? (f.has_media ? "Ya" : "Tidak") : "-"}</td>
+          <td class="px-2 py-1 text-slate-600 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
+            ${safe(f.media_link)}
+          </td>
+          <td class="px-2 py-1 ${
+            f.status === "ok" ? "text-emerald-600" :
+            f.status === "error" ? "text-red-600" :
+            "text-slate-500"
+          }">
+            ${safe(f.status)}
+          </td>
+          <td class="px-2 py-1 text-slate-500 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
+            ${
+              f.error
+                ? (typeof f.error === "string"
+                    ? f.error
+                    : JSON.stringify(f.error).slice(0, 80) + "...")
+                : "-"
+            }
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+
+      document.getElementById("sumTotal").textContent    = total;
+      document.getElementById("sumOk").textContent       = okCount;
+      document.getElementById("sumFail").textContent     = failCount;
+      document.getElementById("sumFollowOk").textContent = followOk;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadBroadcastDetail);
+  </script>
 </body>
 </html>
