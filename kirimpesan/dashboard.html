@@ -1236,7 +1236,7 @@
           const outputEl     = document.getElementById("output");
           const sel          = document.getElementById("templateSelect");
           const templateName = sel.value;
-
+      
           if (!templateName) {
             alert("Please select a template.");
             return;
@@ -1245,14 +1245,23 @@
             alert("Add at least one recipient.");
             return;
           }
-
+      
           const bodyPayload = {
             template_name: templateName,
             rows: recipients
           };
-
+      
           if (currentSenderPhone) {
             bodyPayload.sender_phone = currentSenderPhone;
+          }
+      
+          // 🔹 AMBIL NILAI JADWAL
+          const schedVal = document.getElementById("schedule").value;
+          if (schedVal) {
+            const dt = new Date(schedVal);
+            if (!isNaN(dt)) {
+              bodyPayload.schedule_at = dt.toISOString();   // kirim ke backend
+            }
           }
 
           // FOLLOWUP CONFIG
