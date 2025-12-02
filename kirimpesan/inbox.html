@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCKuadrat – Kotak Masuk WA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mcgreen: "#25D366",
+            mcdark: "#128C7E"
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #ffe9df, #ffffff 40%, #ffffff 60%, #ffe9df);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 text-slate-900">
+
+  <!-- Guard: wajib login -->
+  <script>
+    (function () {
+      const logged = localStorage.getItem("sb_logged_in");
+      const school = localStorage.getItem("sb_school");
+      if (logged !== "1" || !school) {
+        window.location.href = "/kirimpesan/";
+      }
+    })();
+  </script>
+
+  <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="w-full border-b border-slate-200 bg-white">
+      <div class="mx-auto flex items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7542e]/10">
+            <span class="text-2xl">📥</span>
+          </div>
+          <div>
+            <div class="text-sm font-semibold">Kotak Masuk WhatsApp</div>
+            <div class="text-xs text-slate-500">Lihat siapa yang balas dan isi pesannya</div>
+          </div>
+        </div>
+
+        <div class="hidden text-sm text-slate-500 sm:flex sm:items-center sm:gap-4">
+          Hai, <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
+
+          <a
+            href="/kirimpesan/dashboard.html"
+            class="text-xs font-semibold text-mcgreen underline hover:text-mcdark"
+          >
+            ← Kembali ke Dashboard
+          </a>
+
+          <button onclick="logout()" class="text-xs font-semibold text-red-500 underline">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="mx-auto px-6 py-6 bg-white">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-800">Inbox Terbaru</h2>
+          <p class="text-xs text-slate-500">
+            Menampilkan balasan terakhir dari orang tua/siswa. Data diambil dari webhook.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="inboxCount" class="text-xs text-slate-500">0 pesan</span>
+          <button
+            id="btnRefresh"
+            type="button"
+            class="rounded-md border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium hover:bg-slate-100"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 overflow-hidden">
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="min-w-full text-[11px]">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Waktu</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama (var1)</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Tipe</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Quick Reply?</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Broadcast ID</th>
+                <th class="px-2 py-1 text-left font-semibold text-slate-600">Template</th>
+              </tr>
+            </thead>
+            <tbody id="inboxBody" class="divide-y divide-slate-100">
+              <!-- rows by JS -->
+            </tbody>
+          </table>
+        </div>
+        <p class="px-3 py-2 text-[11px] text-slate-500 border-t border-slate-100">
+          *Nama diambil dari <span class="font-mono">var1</span> pada broadcast (jika tersedia).
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+    <div class="flex items-start gap-2 rounded-lg bg-slate-900/90 px-4 py-3 text-sm text-white shadow-lg">
+      <div class="mt-0.5 text-lg">ℹ️</div>
+      <p id="toastText" class="mt-0.5 text-xs opacity-90">
+        ...
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
+    const INBOX_URL = API_BASE + "inbox";
+
+    function logout() {
+      localStorage.removeItem("sb_logged_in");
+      localStorage.removeItem("sb_school");
+      window.location.href = "/kirimpesan/";
+    }
+
+    (function setSchoolLabel() {
+      const storedSchool = localStorage.getItem("sb_school") || "sekolahpesatbogor";
+      const SCHOOL_MAP = { "sekolahpesatbogor": "Sekolah Pesat Bogor" };
+      const label = SCHOOL_MAP[storedSchool] || storedSchool;
+      const el = document.getElementById("schoolLabel");
+      if (el) el.textContent = label;
+    })();
+
+    function showToast(msg, dur = 2500) {
+      const t = document.getElementById("toast");
+      const p = document.getElementById("toastText");
+      if (!t || !p) return;
+      p.textContent = msg;
+      t.classList.remove("hidden");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => t.classList.add("hidden"), dur);
+    }
+
+    function formatDateTime(str) {
+      if (!str) return "-";
+      const d = new Date(str);
+      if (isNaN(d.getTime())) return str;
+      return d.toLocaleString("id-ID");
+    }
+
+    function safe(v, def = "-") {
+      if (v === null || typeof v === "undefined" || v === "") return def;
+      return v;
+    }
+
+    async function loadInbox() {
+      try {
+        showToast("Memuat kotak masuk...");
+        const res = await fetch(INBOX_URL + "?limit=200");
+        const data = await res.json();
+        if (!res.ok || data.status !== "ok") {
+          console.error("inbox error:", data);
+          showToast("Gagal memuat kotak masuk");
+          return;
+        }
+
+        const body = document.getElementById("inboxBody");
+        body.innerHTML = "";
+
+        const messages = Array.isArray(data.messages) ? data.messages : [];
+        document.getElementById("inboxCount").textContent = messages.length + " pesan";
+
+        messages.forEach((m, idx) => {
+          const tr = document.createElement("tr");
+
+          const vars = m.vars_json || {};
+          const nama = vars.var1 || "-";
+
+          tr.innerHTML = `
+            <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
+            <td class="px-2 py-1 text-slate-600 whitespace-nowrap">${formatDateTime(m.at)}</td>
+            <td class="px-2 py-1 font-mono text-slate-800">${safe(m.phone)}</td>
+            <td class="px-2 py-1 text-slate-700">${safe(nama)}</td>
+            <td class="px-2 py-1 text-slate-700 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis" title="${safe(m.message_text)}">
+              ${safe(m.message_text)}
+            </td>
+            <td class="px-2 py-1 text-slate-600">${safe(m.message_type)}</td>
+            <td class="px-2 py-1 ${m.is_quick_reply ? "text-emerald-600" : "text-slate-500"}">
+              ${m.is_quick_reply ? "Ya" : "Tidak"}
+            </td>
+            <td class="px-2 py-1 text-slate-600 font-mono max-w-[120px] whitespace-nowrap overflow-hidden text-ellipsis" title="${safe(m.broadcast_id)}">
+              ${safe(m.broadcast_id)}
+            </td>
+            <td class="px-2 py-1 text-slate-600">${safe(m.template_name)}</td>
+          `;
+          body.appendChild(tr);
+        });
+
+        showToast("Kotak masuk berhasil dimuat", 1800);
+      } catch (err) {
+        console.error(err);
+        showToast("Error memuat kotak masuk");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadInbox();
+      document.getElementById("btnRefresh").addEventListener("click", loadInbox);
+    });
+  </script>
+</body>
+</html>
