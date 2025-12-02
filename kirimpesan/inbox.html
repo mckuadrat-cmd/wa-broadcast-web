@@ -47,7 +47,9 @@
           </div>
           <div>
             <div class="text-sm font-semibold">Kotak Masuk WhatsApp</div>
-            <div class="text-xs text-slate-500">Lihat siapa yang balas dan isi pesannya</div>
+            <div class="text-xs text-slate-500">
+              Percakapan per nomor dengan tampilan mirip WhatsApp.
+            </div>
           </div>
         </div>
 
@@ -72,13 +74,13 @@
     <main class="mx-auto px-6 py-6 bg-white">
       <div class="mb-4 flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-slate-800">Inbox Terbaru</h2>
+          <h2 class="text-sm font-semibold text-slate-800">Inbox Percakapan</h2>
           <p class="text-xs text-slate-500">
-            Menampilkan balasan terakhir dari orang tua/siswa. Data diambil dari webhook.
+            Menampilkan percakapan per nomor. Data pesan diambil dari webhook (inbound).
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <span id="inboxCount" class="text-xs text-slate-500">0 pesan</span>
+          <span id="inboxCount" class="text-xs text-slate-500">0 percakapan</span>
           <button
             id="btnRefresh"
             type="button"
@@ -89,30 +91,72 @@
         </div>
       </div>
 
-      <div class="rounded-xl border border-slate-200 overflow-hidden">
-        <div class="overflow-auto max-h-[60vh]">
-          <table class="min-w-full text-[11px]">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Waktu</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama (var1)</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Tipe</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Quick Reply?</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Broadcast ID</th>
-                <th class="px-2 py-1 text-left font-semibold text-slate-600">Template</th>
-              </tr>
-            </thead>
-            <tbody id="inboxBody" class="divide-y divide-slate-100">
-              <!-- rows by JS -->
-            </tbody>
-          </table>
-        </div>
-        <p class="px-3 py-2 text-[11px] text-slate-500 border-t border-slate-100">
-          *Nama diambil dari <span class="font-mono">var1</span> pada broadcast (jika tersedia).
-        </p>
+      <!-- 2 kolom: kiri list thread, kanan chat window -->
+      <div class="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.9fr)]">
+
+        <!-- LEFT: daftar thread per nomor -->
+        <section class="rounded-xl border border-slate-200 bg-white flex flex-col max-h-[70vh]">
+          <div class="border-b border-slate-100 px-3 py-2 flex items-center justify-between">
+            <div class="text-xs font-semibold text-slate-700">Daftar Percakapan</div>
+            <span class="text-[11px] text-slate-500" id="threadSummary">-</span>
+          </div>
+
+          <div id="threadList" class="flex-1 overflow-y-auto">
+            <!-- diisi oleh JS -->
+          </div>
+
+          <p class="px-3 py-2 text-[11px] text-slate-500 border-t border-slate-100">
+            *Nama diambil dari <span class="font-mono">var1</span> pada broadcast (jika tersedia).
+          </p>
+        </section>
+
+        <!-- RIGHT: chat bubble ala WhatsApp -->
+        <section class="rounded-xl border border-slate-200 bg-white flex flex-col max-h-[70vh]">
+
+          <!-- Header chat -->
+          <div class="border-b border-slate-100 px-3 py-2 flex items-center justify-between">
+            <div>
+              <div id="chatTitle" class="text-xs font-semibold text-slate-800">
+                Pilih percakapan di sebelah kiri
+              </div>
+              <div id="chatSubtitle" class="text-[11px] text-slate-500">
+                Nomor & nama akan tampil di sini.
+              </div>
+            </div>
+            <div id="chatMeta" class="text-[11px] text-slate-500 text-right">
+              -
+            </div>
+          </div>
+
+          <!-- Chat messages -->
+          <div id="chatWindow" class="flex-1 overflow-y-auto px-3 py-3 bg-slate-50">
+            <!-- bubble chat dari JS -->
+          </div>
+
+          <!-- Composer -->
+          <div class="border-t border-slate-200 px-3 py-2 bg-white">
+            <div class="flex items-end gap-2">
+              <textarea
+                id="replyText"
+                rows="2"
+                class="flex-1 rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-mcgreen"
+                placeholder="Tulis balasan ke nomor ini..."
+              ></textarea>
+              <button
+                id="btnSendReply"
+                type="button"
+                class="inline-flex items-center justify-center rounded-full bg-mcgreen text-white px-4 py-2 text-xs font-semibold hover:bg-mcdark disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled
+              >
+                Kirim
+              </button>
+            </div>
+            <p class="mt-1 text-[10px] text-slate-500">
+              Balasan dikirim sebagai pesan WhatsApp biasa (customer-initiated conversation).
+            </p>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -128,8 +172,13 @@
   </div>
 
   <script>
-    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
-    const INBOX_URL = API_BASE + "inbox";
+    const API_BASE          = "https://api.mckuadrat.com/kirimpesan/";
+    const INBOX_URL         = API_BASE + "inbox";
+    const BACKEND_CUSTOM_URL = API_BASE + "custom";
+
+    let allMessages  = [];
+    let allThreads   = [];  // [{phone, name, lastText, lastTime, messages: []}]
+    let activePhone  = null;
 
     function logout() {
       localStorage.removeItem("sb_logged_in");
@@ -162,15 +211,208 @@
       return d.toLocaleString("id-ID");
     }
 
+    function formatTimeShort(str) {
+      if (!str) return "";
+      const d = new Date(str);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    }
+
     function safe(v, def = "-") {
       if (v === null || typeof v === "undefined" || v === "") return def;
       return v;
     }
 
+    function buildThreadsFromMessages(messages) {
+      const map = {};
+
+      messages.forEach((m) => {
+        const phone = m.phone || m.from;
+        if (!phone) return;
+        if (!map[phone]) map[phone] = [];
+        map[phone].push(m);
+      });
+
+      const threads = Object.keys(map).map((phone) => {
+        const msgs = map[phone].slice().sort((a, b) => {
+          const da = new Date(a.at || a.timestamp || 0).getTime();
+          const db = new Date(b.at || b.timestamp || 0).getTime();
+          return da - db;
+        });
+
+        const last = msgs[msgs.length - 1];
+        const vars = last.vars_json || {};
+        const nama = vars.var1 || "";
+
+        return {
+          phone,
+          name: nama,
+          lastText: last.message_text || "",
+          lastTime: last.at || last.timestamp || null,
+          messages: msgs
+        };
+      });
+
+      threads.sort((a, b) => {
+        const da = new Date(a.lastTime || 0).getTime();
+        const db = new Date(b.lastTime || 0).getTime();
+        return db - da;
+      });
+
+      return threads;
+    }
+
+    function renderThreadList() {
+      const container = document.getElementById("threadList");
+      const summaryEl = document.getElementById("threadSummary");
+      const inboxCountEl = document.getElementById("inboxCount");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      if (!allThreads.length) {
+        container.innerHTML = `
+          <div class="px-3 py-4 text-[11px] text-slate-500">
+            Belum ada pesan masuk dari webhook.
+          </div>
+        `;
+        summaryEl.textContent   = "0 percakapan";
+        inboxCountEl.textContent = "0 percakapan";
+        return;
+      }
+
+      inboxCountEl.textContent = allThreads.length + " percakapan";
+      summaryEl.textContent    = allMessages.length + " pesan";
+
+      allThreads.forEach((t) => {
+        const isActive = (t.phone === activePhone);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "w-full flex items-start gap-2 px-3 py-2 text-left border-b border-slate-100 hover:bg-slate-50 " +
+          (isActive ? "bg-slate-50" : "");
+
+        const initial = (t.name || t.phone || "?").trim()[0] || "?";
+
+        btn.innerHTML = `
+          <div class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-mcgreen/10 text-[11px] font-semibold text-mcgreen">
+            ${initial.toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center gap-2">
+              <div class="truncate">
+                <div class="text-[11px] font-semibold text-slate-800">
+                  ${t.name ? t.name : t.phone}
+                </div>
+                <div class="text-[10px] text-slate-500 font-mono truncate">
+                  ${t.name ? t.phone : ""}
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-500 whitespace-nowrap">
+                ${formatTimeShort(t.lastTime)}
+              </div>
+            </div>
+            <div class="mt-0.5 text-[10px] text-slate-600 truncate">
+              ${safe(t.lastText, "(tanpa teks)")}
+            </div>
+          </div>
+        `;
+
+        btn.addEventListener("click", () => {
+          activePhone = t.phone;
+          renderThreadList();
+          renderChatWindow();
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    function renderChatWindow() {
+      const chatTitle    = document.getElementById("chatTitle");
+      const chatSubtitle = document.getElementById("chatSubtitle");
+      const chatMeta     = document.getElementById("chatMeta");
+      const chatWindow   = document.getElementById("chatWindow");
+      const replyInput   = document.getElementById("replyText");
+      const sendBtn      = document.getElementById("btnSendReply");
+
+      if (!chatWindow) return;
+
+      chatWindow.innerHTML = "";
+
+      if (!activePhone) {
+        chatTitle.textContent    = "Pilih percakapan di sebelah kiri";
+        chatSubtitle.textContent = "Nomor & nama akan tampil di sini.";
+        chatMeta.textContent     = "-";
+        if (replyInput) replyInput.value = "";
+        if (sendBtn) sendBtn.disabled = true;
+        return;
+      }
+
+      const thread = allThreads.find((t) => t.phone === activePhone);
+      if (!thread) {
+        chatTitle.textContent    = "Pilih percakapan di sebelah kiri";
+        chatSubtitle.textContent = "Nomor & nama akan tampil di sini.";
+        chatMeta.textContent     = "-";
+        if (replyInput) replyInput.value = "";
+        if (sendBtn) sendBtn.disabled = true;
+        return;
+      }
+
+      const displayName = thread.name || thread.phone;
+      chatTitle.textContent    = displayName;
+      chatSubtitle.textContent = thread.name ? thread.phone : "(nama tidak tersedia)";
+      chatMeta.textContent     =
+        thread.messages.length + " pesan · terakhir " + formatDateTime(thread.lastTime);
+
+      if (sendBtn) sendBtn.disabled = false;
+
+      // Bubble chat (sisi kiri semua, karena ini inbound dari user)
+      thread.messages.forEach((m) => {
+        const bubbleRow = document.createElement("div");
+        bubbleRow.className = "flex justify-start mb-2";
+
+        const bubble = document.createElement("div");
+        bubble.className =
+          "inline-flex flex-col max-w-[80%] rounded-2xl rounded-tl-none bg-white px-3 py-2 shadow-sm border border-slate-200";
+
+        const metaLine = document.createElement("div");
+        metaLine.className = "flex items-center justify-between gap-2 mb-0.5";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "text-[9px] text-slate-500";
+        timeSpan.textContent = formatDateTime(m.at || m.timestamp || "");
+
+        const typeSpan = document.createElement("span");
+        typeSpan.className =
+          "text-[9px] " +
+          (m.is_quick_reply ? "text-emerald-600" : "text-slate-400");
+        typeSpan.textContent = m.is_quick_reply
+          ? "Quick reply"
+          : (m.message_type || "text");
+
+        metaLine.appendChild(timeSpan);
+        metaLine.appendChild(typeSpan);
+
+        const textDiv = document.createElement("div");
+        textDiv.className = "text-[11px] text-slate-800 whitespace-pre-wrap break-words";
+        textDiv.textContent = safe(m.message_text, "(tanpa teks)");
+
+        bubble.appendChild(metaLine);
+        bubble.appendChild(textDiv);
+
+        bubbleRow.appendChild(bubble);
+        chatWindow.appendChild(bubbleRow);
+      });
+
+      // scroll ke bawah
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
     async function loadInbox() {
       try {
         showToast("Memuat kotak masuk...");
-        const res = await fetch(INBOX_URL + "?limit=200");
+        const res = await fetch(INBOX_URL + "?limit=500");
         const data = await res.json();
         if (!res.ok || data.status !== "ok") {
           console.error("inbox error:", data);
@@ -178,38 +420,18 @@
           return;
         }
 
-        const body = document.getElementById("inboxBody");
-        body.innerHTML = "";
+        allMessages = Array.isArray(data.messages) ? data.messages : [];
 
-        const messages = Array.isArray(data.messages) ? data.messages : [];
-        document.getElementById("inboxCount").textContent = messages.length + " pesan";
+        allThreads = buildThreadsFromMessages(allMessages);
 
-        messages.forEach((m, idx) => {
-          const tr = document.createElement("tr");
+        if (!activePhone && allThreads.length > 0) {
+          activePhone = allThreads[0].phone;
+        } else if (activePhone && !allThreads.some(t => t.phone === activePhone)) {
+          activePhone = allThreads.length ? allThreads[0].phone : null;
+        }
 
-          const vars = m.vars_json || {};
-          const nama = vars.var1 || "-";
-
-          tr.innerHTML = `
-            <td class="px-2 py-1 text-slate-500">${idx + 1}</td>
-            <td class="px-2 py-1 text-slate-600 whitespace-nowrap">${formatDateTime(m.at)}</td>
-            <td class="px-2 py-1 font-mono text-slate-800">${safe(m.phone)}</td>
-            <td class="px-2 py-1 text-slate-700">${safe(nama)}</td>
-            <td class="px-2 py-1 text-slate-700 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis" title="${safe(m.message_text)}">
-              ${safe(m.message_text)}
-            </td>
-            <td class="px-2 py-1 text-slate-600">${safe(m.message_type)}</td>
-            <td class="px-2 py-1 ${m.is_quick_reply ? "text-emerald-600" : "text-slate-500"}">
-              ${m.is_quick_reply ? "Ya" : "Tidak"}
-            </td>
-            <td class="px-2 py-1 text-slate-600 font-mono max-w-[120px] whitespace-nowrap overflow-hidden text-ellipsis" title="${safe(m.broadcast_id)}">
-              ${safe(m.broadcast_id)}
-            </td>
-            <td class="px-2 py-1 text-slate-600">${safe(m.template_name)}</td>
-          `;
-          body.appendChild(tr);
-        });
-
+        renderThreadList();
+        renderChatWindow();
         showToast("Kotak masuk berhasil dimuat", 1800);
       } catch (err) {
         console.error(err);
@@ -217,9 +439,73 @@
       }
     }
 
+    async function sendReply() {
+      const replyInput = document.getElementById("replyText");
+      const sendBtn    = document.getElementById("btnSendReply");
+      if (!activePhone) {
+        showToast("Pilih percakapan dulu");
+        return;
+      }
+      const text = (replyInput?.value || "").trim();
+      if (!text) {
+        showToast("Isi pesan dulu");
+        return;
+      }
+
+      sendBtn.disabled = true;
+      showToast("Mengirim balasan...");
+
+      try {
+        const res = await fetch(BACKEND_CUSTOM_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: activePhone,
+            text: text
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.status !== "ok") {
+          console.error("sendReply error:", data);
+          showToast("Gagal mengirim balasan");
+        } else {
+          showToast("Balasan terkirim ✓");
+          if (replyInput) replyInput.value = "";
+          // opsional: tambahkan pseudo-bubble "outgoing" di UI
+          const thread = allThreads.find((t) => t.phone === activePhone);
+          if (thread) {
+            const now = new Date().toISOString();
+            thread.messages.push({
+              at: now,
+              message_text: text,
+              message_type: "outgoing",
+              is_quick_reply: false
+            });
+            thread.lastTime = now;
+            renderChatWindow();
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Error mengirim pesan");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       loadInbox();
+
       document.getElementById("btnRefresh").addEventListener("click", loadInbox);
+      document.getElementById("btnSendReply").addEventListener("click", sendReply);
+
+      document.getElementById("replyText").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendReply();
+        }
+      });
     });
   </script>
 </body>
