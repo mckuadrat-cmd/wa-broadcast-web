@@ -1376,13 +1376,11 @@
             bodyPayload.sender_phone = currentSenderPhone;
           }
 
-          // Jadwal
-          const schedVal = document.getElementById("schedule").value;
-          if (schedVal) {
-            const dt = new Date(schedVal);
-            if (!isNaN(dt)) {
-              bodyPayload.schedule_at = dt.toISOString();
-            }
+          // === jadwal kirim (optional) ===
+          const scheduleVal = document.getElementById("schedule").value;
+          if (scheduleVal) {
+            bodyPayload.scheduled_at = scheduleVal;
+          }
           }
 
           // FOLLOWUP CONFIG
