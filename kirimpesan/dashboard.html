@@ -1300,6 +1300,11 @@
               .map((l) => l.trim())
               .filter((l) => l.length > 0);
 
+            // Skip header jika baris pertama mengandung huruf
+            if (lines.length > 0 && /[a-zA-Z]/.test(lines[0])) {
+              lines.shift(); // buang header
+            }
+
             let added = 0;
 
             for (const line of lines) {
