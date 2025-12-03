@@ -172,13 +172,27 @@
   </div>
 
   <script>
-    const API_BASE          = "https://api.mckuadrat.com/kirimpesan/";
-    const INBOX_URL         = API_BASE + "inbox";
+    const API_BASE           = "https://api.mckuadrat.com/kirimpesan/";
+    const INBOX_URL          = API_BASE + "inbox";
     const BACKEND_CUSTOM_URL = API_BASE + "custom";
 
-    let allMessages  = [];
-    let allThreads   = [];  // [{phone, name, lastText, lastTime, messages: []}]
-    let activePhone  = null;
+    let allMessages = [];
+    let allThreads  = [];  // [{phone, name, lastText, lastTime, messages: []}]
+    let activePhone = null;
+
+    // MAP UNREAD: { phone: lastSeenTimeISO }
+    let unreadMap = {};
+    (function loadUnreadMap() {
+      try {
+        unreadMap = JSON.parse(localStorage.getItem("sb_inbox_unread") || "{}");
+      } catch {
+        unreadMap = {};
+      }
+    })();
+
+    function saveUnreadMap() {
+      localStorage.setItem("sb_inbox_unread", JSON.stringify(unreadMap));
+    }
 
     function logout() {
       localStorage.removeItem("sb_logged_in");
@@ -263,8 +277,8 @@
     }
 
     function renderThreadList() {
-      const container = document.getElementById("threadList");
-      const summaryEl = document.getElementById("threadSummary");
+      const container    = document.getElementById("threadList");
+      const summaryEl    = document.getElementById("threadSummary");
       const inboxCountEl = document.getElementById("inboxCount");
       if (!container) return;
 
@@ -276,7 +290,7 @@
             Belum ada pesan masuk dari webhook.
           </div>
         `;
-        summaryEl.textContent   = "0 percakapan";
+        summaryEl.textContent    = "0 percakapan";
         inboxCountEl.textContent = "0 percakapan";
         return;
       }
@@ -285,7 +299,12 @@
       summaryEl.textContent    = allMessages.length + " pesan";
 
       allThreads.forEach((t) => {
-        const isActive = (t.phone === activePhone);
+        const isActive  = (t.phone === activePhone);
+        const lastSeen  = unreadMap[t.phone];
+        const hasUnread =
+          t.lastTime &&
+          (!lastSeen || new Date(t.lastTime) > new Date(lastSeen));
+
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className =
@@ -301,8 +320,9 @@
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-center gap-2">
               <div class="truncate">
-                <div class="text-[11px] font-semibold text-slate-800">
+                <div class="text-[11px] font-semibold ${hasUnread ? "text-slate-900" : "text-slate-800"}">
                   ${t.name ? t.name : t.phone}
+                  ${hasUnread ? '<span class="ml-1 inline-block h-2 w-2 rounded-full bg-red-500 align-middle"></span>' : ""}
                 </div>
                 <div class="text-[10px] text-slate-500 font-mono truncate">
                   ${t.name ? t.phone : ""}
@@ -320,6 +340,13 @@
 
         btn.addEventListener("click", () => {
           activePhone = t.phone;
+
+          // ketika thread diklik → tandai sudah dibaca
+          if (t.lastTime) {
+            unreadMap[t.phone] = t.lastTime;
+            saveUnreadMap();
+          }
+
           renderThreadList();
           renderChatWindow();
         });
@@ -337,7 +364,6 @@
       const sendBtn      = document.getElementById("btnSendReply");
 
       if (!chatWindow) return;
-
       chatWindow.innerHTML = "";
 
       if (!activePhone) {
@@ -369,12 +395,11 @@
 
       // Bubble chat (kiri = user, kanan = kita/outgoing)
       thread.messages.forEach((m) => {
-        // DETEKSI OUTGOING
         const isOutgoing =
-          m.message_type === "outgoing" ||   // yg kamu push di sendReply()
+          m.message_type === "outgoing" ||
           m.message_type === "outgoing_media" ||
-          m.direction === "outgoing" ||      // kalau backend kirim field direction
-          m.from_me === true;                // kalau ada flag dari webhook
+          m.direction === "outgoing" ||
+          m.from_me === true;
 
         const bubbleRow = document.createElement("div");
         bubbleRow.className =
@@ -384,9 +409,7 @@
         bubble.className =
           "inline-flex flex-col max-w-[80%] px-3 py-2 shadow-sm border " +
           (isOutgoing
-            // BUBBLE KITA (KANAN)
             ? "rounded-2xl rounded-tr-none bg-mcgreen text-white border-mcgreen"
-            // BUBBLE USER (KIRI)
             : "rounded-2xl rounded-tl-none bg-white text-slate-800 border-slate-200");
 
         const metaLine = document.createElement("div");
@@ -422,32 +445,40 @@
         chatWindow.appendChild(bubbleRow);
       });
 
-      // scroll ke bawah
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     async function loadInbox(opts = {}) {
       const silent = opts.silent === true;
-    
+
       try {
         if (!silent) showToast("Memuat kotak masuk...");
-        const res = await fetch(INBOX_URL + "?limit=500");
+        const res  = await fetch(INBOX_URL + "?limit=500");
         const data = await res.json();
         if (!res.ok || data.status !== "ok") {
           console.error("inbox error:", data);
           if (!silent) showToast("Gagal memuat kotak masuk");
           return;
         }
-    
+
         allMessages = Array.isArray(data.messages) ? data.messages : [];
         allThreads  = buildThreadsFromMessages(allMessages);
-    
+
         if (!activePhone && allThreads.length > 0) {
           activePhone = allThreads[0].phone;
         } else if (activePhone && !allThreads.some(t => t.phone === activePhone)) {
           activePhone = allThreads.length ? allThreads[0].phone : null;
         }
-    
+
+        // kalau lagi buka thread tertentu, anggap sudah dibaca
+        if (activePhone) {
+          const current = allThreads.find(t => t.phone === activePhone);
+          if (current && current.lastTime) {
+            unreadMap[activePhone] = current.lastTime;
+            saveUnreadMap();
+          }
+        }
+
         renderThreadList();
         renderChatWindow();
         if (!silent) showToast("Kotak masuk berhasil dimuat", 1800);
@@ -469,10 +500,10 @@
         showToast("Isi pesan dulu");
         return;
       }
-    
+
       sendBtn.disabled = true;
       showToast("Mengirim balasan...");
-    
+
       try {
         const res = await fetch(BACKEND_CUSTOM_URL, {
           method: "POST",
@@ -482,7 +513,7 @@
             text: text
           })
         });
-    
+
         const data = await res.json();
         if (!res.ok || data.status !== "ok") {
           console.error("sendReply error:", data);
@@ -490,26 +521,27 @@
         } else {
           showToast("Balasan terkirim ✓");
           if (replyInput) replyInput.value = "";
-    
-          // ===> TAMBAHKAN PSEUDO-BUBBLE KITA DI SINI
+
           const thread = allThreads.find((t) => t.phone === activePhone);
           if (thread) {
             const now = new Date().toISOString();
             const outgoingMsg = {
-              id: "local-" + now,       // id lokal aja, gak masalah
+              id: "local-" + now,
               at: now,
               phone: activePhone,
-              from_me: true,            // penting buat bubble kanan
+              from_me: true,
               message_type: "outgoing",
               message_text: text,
               is_quick_reply: false
             };
             thread.messages.push(outgoingMsg);
-            thread.lastTime = now;
+            thread.lastTime           = now;
+            unreadMap[activePhone]    = now; // dianggap sudah dibaca
+            saveUnreadMap();
+
             renderChatWindow();
-            renderThreadList();         // biar urutan thread ke atas
+            renderThreadList();
           }
-          // nanti polling otomatis (di langkah 2) akan sync ke data DB
         }
       } catch (err) {
         console.error(err);
@@ -519,26 +551,24 @@
       }
     }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        // pertama kali load (pakai toast)
+    document.addEventListener("DOMContentLoaded", () => {
+      loadInbox();
+
+      document.getElementById("btnRefresh").addEventListener("click", () => {
         loadInbox();
-      
-        document.getElementById("btnRefresh").addEventListener("click", () => {
-          loadInbox();  // manual refresh
-        });
-        document.getElementById("btnSendReply").addEventListener("click", sendReply);
-        document.getElementById("replyText").addEventListener("keypress", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendReply();
-          }
-        });
-      
-        // ===> AUTO REFRESH SETIAP 10 DETIK (silent)
-        setInterval(() => {
-          loadInbox({ silent: true });
-        }, 10000); // 10000 ms = 10 detik, boleh diperkecil kalau mau
       });
+      document.getElementById("btnSendReply").addEventListener("click", sendReply);
+      document.getElementById("replyText").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendReply();
+        }
+      });
+
+      // auto refresh 10 detik sekali (silent)
+      setInterval(() => {
+        loadInbox({ silent: true });
+      }, 10000);
     });
   </script>
 </body>
