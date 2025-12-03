@@ -84,9 +84,20 @@
 
       <!-- Tabel gabungan -->
       <section class="rounded-xl border border-slate-200 bg-white p-4 text-[11px] md:text-xs">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="font-semibold text-slate-800">Data Penerima, Status Template &amp; Follow-up</h2>
-          <p id="bcStatusText" class="text-[11px] text-slate-500">Detail berhasil dimuat.</p>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
+          <h2 class="font-semibold text-slate-800">
+            Data Penerima, Status Template &amp; Follow-up
+          </h2>
+          <div class="flex items-center gap-2">
+            <button
+              id="btnDownloadCsv"
+              class="rounded-md border border-slate-300 bg-slate-50 px-3 py-1 text-[11px] md:text-xs font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200">
+              Download CSV Laporan
+            </button>
+            <p id="bcStatusText" class="text-[11px] text-slate-500">
+              Detail berhasil dimuat.
+            </p>
+          </div>
         </div>
 
         <div class="overflow-auto border border-slate-200 rounded-lg">
@@ -131,6 +142,11 @@
   <script>
     const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
     const BACKEND_LOG_DETAIL_URL = API_BASE + "broadcast/logs/";
+
+    // state global buat CSV
+    let currentBroadcast = {};
+    let currentRecipients = [];
+    let currentFollowups = [];
 
     function showToast(msg, duration = 2500) {
       const el = document.getElementById("toast");
@@ -204,11 +220,16 @@
           return;
         }
 
-        // ⬇️ struktur yang benar: { log: { broadcast, recipients, followups } }
+        // struktur: { log: { broadcast, recipients, followups } }
         const log        = data.log || {};
         const broadcast  = log.broadcast  || {};
         const recipients = log.recipients || [];
         const followups  = log.followups  || [];
+
+        // simpan ke state global buat CSV
+        currentBroadcast = broadcast;
+        currentRecipients = recipients;
+        currentFollowups = followups;
 
         fillHeader(broadcast, recipients, followups);
         renderCombinedTable(recipients, followups);
@@ -232,8 +253,6 @@
         broadcast.phone_number_id || "-";
       document.getElementById("bcFollowupStatus").textContent =
         broadcast.followup_enabled ? "Aktif" : "Nonaktif";
-
-      // summary akan diisi di renderCombinedTable
     }
 
     function renderCombinedTable(recipients, followups) {
@@ -316,7 +335,106 @@
       document.getElementById("sumFollowOk").textContent = followOk;
     }
 
-    document.addEventListener("DOMContentLoaded", loadBroadcastDetail);
+    // ===== Helper buat CSV =====
+    function csvEscape(value) {
+      if (value === null || typeof value === "undefined") return "";
+      let str = String(value);
+      // handle line break
+      if (/[",\n\r]/.test(str)) {
+        str = '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    function downloadCsvReport() {
+      if (!currentRecipients.length) {
+        showToast("Tidak ada data penerima untuk diunduh.");
+        return;
+      }
+
+      // map follow-up by phone (lagi, biar aman)
+      const folMap = {};
+      currentFollowups.forEach(f => {
+        if (!f.phone) return;
+        folMap[String(f.phone)] = f;
+      });
+
+      const header = [
+        "broadcast_id",
+        "phone",
+        "vars",
+        "follow_media",
+        "template_ok",
+        "template_http_status",
+        "template_error",
+        "follow_status",
+        "follow_at",
+        "follow_has_media",
+        "follow_media_link",
+        "follow_error"
+      ];
+
+      const rows = [header.join(",")];
+
+      currentRecipients.forEach(r => {
+        const f = folMap[String(r.phone || "")] || {};
+
+        const line = [
+          csvEscape(currentBroadcast.id || ""),
+          csvEscape(r.phone || ""),
+          csvEscape(formatVars(r.vars_json)),
+          csvEscape(r.follow_media || ""),
+          csvEscape(r.template_ok === true ? "OK" : (r.template_ok === false ? "FAILED" : "")),
+          csvEscape(r.template_http_status || ""),
+          csvEscape(
+            r.template_error
+              ? (typeof r.template_error === "string"
+                  ? r.template_error
+                  : JSON.stringify(r.template_error))
+              : ""
+          ),
+          csvEscape(f.status || ""),
+          csvEscape(f.at ? formatDateTime(f.at) : ""),
+          csvEscape(
+            typeof f.has_media === "boolean"
+              ? (f.has_media ? "Ya" : "Tidak")
+              : ""
+          ),
+          csvEscape(f.media_link || ""),
+          csvEscape(
+            f.error
+              ? (typeof f.error === "string"
+                  ? f.error
+                  : JSON.stringify(f.error))
+              : ""
+          )
+        ];
+
+        rows.push(line.join(","));
+      });
+
+      const csvContent = rows.join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      a.href = url;
+      a.download = `broadcast-${currentBroadcast.id || "log"}-${ts}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadBroadcastDetail();
+
+      const btnCsv = document.getElementById("btnDownloadCsv");
+      if (btnCsv) {
+        btnCsv.addEventListener("click", downloadCsvReport);
+      }
+    });
   </script>
 </body>
 </html>
