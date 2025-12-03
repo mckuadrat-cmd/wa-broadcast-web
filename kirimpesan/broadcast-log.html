@@ -226,28 +226,29 @@
         const sender  = log.sender_phone || "-";
         const tpl     = log.template_name || "-";
       
-        const total   = Number(log.total || 0);              // semua pesan (template + follow-up)
-        const follow  = Number(log.followup_count || 0);     // hanya follow-up
-        const okAll   = Number(log.ok || 0);                 // OK semua pesan
-        const failAll = Number(log.failed || 0);             // gagal semua pesan
+        const total   = Number(log.total || 0);          // semua pesan (template + follow-up)
+        const follow  = Number(log.followup_count || 0); // hanya follow-up
+        const okAll   = Number(log.ok || 0);             // OK semua pesan
+        const failAll = Number(log.failed || 0);         // gagal semua pesan
       
-        // 🔹 1) Total TEMPLATE saja
+        // 1) Total TEMPLATE saja
         const templateTotal = Math.max(0, total - follow);
       
-        // 🔹 2) Semua pesan yang sudah diproses (OK atau gagal)
-        const processedAll = okAll + failAll;
+        // 2) Pending TEMPLATE
+        let pendingTemplate;
+        if (okAll + failAll >= templateTotal) {
+          // semua template sudah diproses (OK atau gagal)
+          pendingTemplate = 0;
+        } else {
+          // masih ada template yang pending / schedule
+          pendingTemplate = Math.max(0, templateTotal - (okAll + failAll));
+        }
       
-        // 🔹 3) Anggap yang diproses duluan itu TEMPLATE
-        const processedTemplate = Math.min(templateTotal, processedAll);
-      
-        // 🔹 4) Gagal template (pakai asumsi: gagal ≤ processedTemplate)
-        const failTemplate = Math.min(failAll, processedTemplate);
-      
-        // 🔹 5) OK template = processedTemplate - gagalTemplate
-        const okTemplate = Math.max(0, processedTemplate - failTemplate);
-      
-        // 🔹 6) Pending template = templateTotal - processedTemplate
-        const pendingTemplate = Math.max(0, templateTotal - processedTemplate);
+        // 3) OK TEMPLATE (alokasikan OK ke template dulu)
+        const okTemplate = Math.max(
+          0,
+          Math.min(templateTotal - failAll, okAll)
+        );
       
         tr.innerHTML = `
           <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
@@ -264,7 +265,7 @@
           <!-- OK = OK TEMPLATE saja -->
           <td class="px-3 py-1.5 text-center text-emerald-600">${okTemplate}</td>
       
-          <!-- Gagal = semua yang gagal (template + follow-up) -->
+          <!-- Gagal = semua pesan gagal -->
           <td class="px-3 py-1.5 text-center text-red-600">${failAll}</td>
       
           <!-- Follow-up = jumlah pesan follow-up -->
