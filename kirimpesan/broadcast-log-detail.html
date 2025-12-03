@@ -295,7 +295,7 @@
       }
       
       // follow-up
-      if (f.status === "Terkirim") {
+      if (f.status === "ok") {
         followOk++;
       }
 
@@ -326,8 +326,8 @@
             ${safe(f.media_link)}
           </td>
           <td class="px-2 py-1 ${
-            f.status === "Terkirim" ? "text-emerald-600" :
-            f.status === "Gagal" ? "text-red-600" :
+            f.status === "ok" ? "text-emerald-600" :
+            f.status === "error" ? "text-red-600" :
             "text-slate-500"
           }">
             ${safe(f.status)}
