@@ -119,6 +119,7 @@
               <th class="px-3 py-2 text-left font-semibold text-slate-600">Template</th>
               <th class="px-3 py-2 text-left font-semibold text-slate-600">Sender</th>
               <th class="px-3 py-2 text-center font-semibold text-slate-600">Total</th>
+              <th class="px-3 py-2 text-center font-semibold text-orange-600">Pending</th>
               <th class="px-3 py-2 text-center font-semibold text-emerald-600">OK</th>
               <th class="px-3 py-2 text-center font-semibold text-red-600">Gagal</th>
               <th class="px-3 py-2 text-center font-semibold text-slate-600">Follow-up</th>
@@ -225,6 +226,7 @@
         const sender  = log.sender_phone || "-";
         const tpl     = log.template_name || "-";
         const total   = log.total || 0;
+        const pending = (row.total || 0) - ok - fail;
         const ok      = log.ok || 0;
         const failed  = log.failed || 0;
         const follow  = log.followup_count || 0;
@@ -235,6 +237,7 @@
           <td class="px-3 py-1.5 text-slate-700">${tpl}</td>
           <td class="px-3 py-1.5 text-slate-600">${sender}</td>
           <td class="px-3 py-1.5 text-center text-slate-700">${total}</td>
+          <td class="px-3 py-1.5 text-center text-orange-600">${pending}</td>
           <td class="px-3 py-1.5 text-center text-emerald-600">${ok}</td>
           <td class="px-3 py-1.5 text-center text-red-600">${failed}</td>
           <td class="px-3 py-1.5 text-center text-slate-700">${follow}</td>
