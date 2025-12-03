@@ -372,6 +372,7 @@
         // DETEKSI OUTGOING
         const isOutgoing =
           m.message_type === "outgoing" ||   // yg kamu push di sendReply()
+          m.message_type === "outgoing_media" ||
           m.direction === "outgoing" ||      // kalau backend kirim field direction
           m.from_me === true;                // kalau ada flag dari webhook
 
@@ -488,19 +489,6 @@
         } else {
           showToast("Balasan terkirim ✓");
           if (replyInput) replyInput.value = "";
-          // opsional: tambahkan pseudo-bubble "outgoing" di UI
-          const thread = allThreads.find((t) => t.phone === activePhone);
-          if (thread) {
-            const now = new Date().toISOString();
-            thread.messages.push({
-              at: now,
-              message_text: text,
-              message_type: "outgoing",
-              is_quick_reply: false
-            });
-            thread.lastTime = now;
-            renderChatWindow();
-          }
         }
       } catch (err) {
         console.error(err);
