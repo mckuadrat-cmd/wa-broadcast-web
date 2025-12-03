@@ -274,14 +274,30 @@
       recipients.forEach((r, idx) => {
         total++;
 
-        const ok   = !!r.template_ok;
-        const http = r.template_http_status;
-        const err  = r.template_error;
-        const vars = r.vars_json;
-        const f    = folMap[String(r.phone || "")] || {};
-
-        if (ok) okCount++; else failCount++;
-        if (f.status === "ok") followOk++;
+      const http = r.template_http_status;
+      const err  = r.template_error;
+      const vars = r.vars_json;
+      const f    = folMap[String(r.phone || "")] || {};
+      
+      // tentukan status template
+      let statusLabel = "PENDING";
+      let statusClass = "text-slate-500";
+      
+      if (r.template_ok === true) {
+        statusLabel = "OK";
+        statusClass = "text-emerald-600";
+        okCount++;
+      } else if (r.template_ok === false || typeof http === "number") {
+        // sudah ada respon tapi gagal
+        statusLabel = "FAILED";
+        statusClass = "text-red-600";
+        failCount++;
+      }
+      
+      // follow-up
+      if (f.status === "ok") {
+        followOk++;
+      }
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -292,8 +308,8 @@
             ${safe(r.follow_media)}
           </td>
           <td class="px-2 py-1 text-slate-600">${safe(http)}</td>
-          <td class="px-2 py-1 ${ok ? "text-emerald-600" : "text-red-600"}">
-            ${ok ? "OK" : "FAILED"}
+          <td class="px-2 py-1 ${statusClass}">
+            ${statusLabel}
           </td>
           <td class="px-2 py-1 text-slate-500 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis">
             ${
