@@ -227,7 +227,7 @@
         const tpl     = log.template_name || "-";
       
         const total  = Number(log.total || 0);
-        const ok     = Number(log.ok || 0);
+        const ok = Number(log.total || 0) - Number(log.follow_up || 0);
         const fail   = Number(log.failed || 0);
         const pending = Math.max(0, total - ok - fail);
       
