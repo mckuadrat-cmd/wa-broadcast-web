@@ -367,37 +367,53 @@
 
       if (sendBtn) sendBtn.disabled = false;
 
-      // Bubble chat (sisi kiri semua, karena ini inbound dari user)
+      // Bubble chat (kiri = user, kanan = kita/outgoing)
       thread.messages.forEach((m) => {
+        // DETEKSI OUTGOING
+        const isOutgoing =
+          m.message_type === "outgoing" ||   // yg kamu push di sendReply()
+          m.direction === "outgoing" ||      // kalau backend kirim field direction
+          m.from_me === true;                // kalau ada flag dari webhook
+
         const bubbleRow = document.createElement("div");
-        bubbleRow.className = "flex justify-start mb-2";
+        bubbleRow.className =
+          "flex mb-2 " + (isOutgoing ? "justify-end" : "justify-start");
 
         const bubble = document.createElement("div");
         bubble.className =
-          "inline-flex flex-col max-w-[80%] rounded-2xl rounded-tl-none bg-white px-3 py-2 shadow-sm border border-slate-200";
+          "inline-flex flex-col max-w-[80%] px-3 py-2 shadow-sm border " +
+          (isOutgoing
+            // BUBBLE KITA (KANAN)
+            ? "rounded-2xl rounded-tr-none bg-mcgreen text-white border-mcgreen"
+            // BUBBLE USER (KIRI)
+            : "rounded-2xl rounded-tl-none bg-white text-slate-800 border-slate-200");
 
         const metaLine = document.createElement("div");
         metaLine.className = "flex items-center justify-between gap-2 mb-0.5";
 
         const timeSpan = document.createElement("span");
-        timeSpan.className = "text-[9px] text-slate-500";
+        timeSpan.className =
+          "text-[9px] " + (isOutgoing ? "text-white/70" : "text-slate-500");
         timeSpan.textContent = formatDateTime(m.at || m.timestamp || "");
 
         const typeSpan = document.createElement("span");
         typeSpan.className =
           "text-[9px] " +
-          (m.is_quick_reply ? "text-emerald-600" : "text-slate-400");
+          (m.is_quick_reply
+            ? (isOutgoing ? "text-white" : "text-emerald-600")
+            : (isOutgoing ? "text-white/70" : "text-slate-400"));
         typeSpan.textContent = m.is_quick_reply
           ? "Quick reply"
           : (m.message_type || "text");
 
-        metaLine.appendChild(timeSpan);
-        metaLine.appendChild(typeSpan);
-
         const textDiv = document.createElement("div");
-        textDiv.className = "text-[11px] text-slate-800 whitespace-pre-wrap break-words";
+        textDiv.className =
+          "text-[11px] whitespace-pre-wrap break-words " +
+          (isOutgoing ? "text-white" : "text-slate-800");
         textDiv.textContent = safe(m.message_text, "(tanpa teks)");
 
+        metaLine.appendChild(timeSpan);
+        metaLine.appendChild(typeSpan);
         bubble.appendChild(metaLine);
         bubble.appendChild(textDiv);
 
