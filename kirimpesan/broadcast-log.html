@@ -221,33 +221,36 @@
 
       logs.forEach((log, idx) => {
         const tr = document.createElement("tr");
-
+      
         const created = formatDateTime(log.created_at);
         const sender  = log.sender_phone || "-";
         const tpl     = log.template_name || "-";
-        const total   = log.total || 0;
-        const pending = (row.total || 0) - ok - fail;
-        const ok      = log.ok || 0;
-        const failed  = log.failed || 0;
-        const follow  = log.followup_count || 0;
-
+      
+        const total  = Number(log.total || 0);
+        const ok     = Number(log.ok || 0);
+        const fail   = Number(log.failed || 0);
+        const pending = Math.max(0, total - ok - fail);
+      
+        const follow  = Number(log.followup_count || 0);
+      
         tr.innerHTML = `
           <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
           <td class="px-3 py-1.5 text-slate-700 whitespace-nowrap">${created}</td>
           <td class="px-3 py-1.5 text-slate-700">${tpl}</td>
           <td class="px-3 py-1.5 text-slate-600">${sender}</td>
-          <td class="px-3 py-1.5 text-center text-slate-700">${total}</td>
+          <td class="px-3 py-1.5 text-center">${total}</td>
           <td class="px-3 py-1.5 text-center text-orange-600">${pending}</td>
           <td class="px-3 py-1.5 text-center text-emerald-600">${ok}</td>
-          <td class="px-3 py-1.5 text-center text-red-600">${failed}</td>
-          <td class="px-3 py-1.5 text-center text-slate-700">${follow}</td>
+          <td class="px-3 py-1.5 text-center text-red-600">${fail}</td>
+          <td class="px-3 py-1.5 text-center">${follow}</td>
           <td class="px-3 py-1.5 text-center">
             <a href="/kirimpesan/broadcast-log-detail.html?id=${encodeURIComponent(log.id)}"
-               class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700 hover:bg-slate-50">
+               class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700 hover:bg-slate-100">
               Detail
             </a>
           </td>
         `;
+      
         tbody.appendChild(tr);
       });
 
