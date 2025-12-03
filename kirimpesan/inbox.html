@@ -426,33 +426,34 @@
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    async function loadInbox() {
+    async function loadInbox(opts = {}) {
+      const silent = opts.silent === true;
+    
       try {
-        showToast("Memuat kotak masuk...");
+        if (!silent) showToast("Memuat kotak masuk...");
         const res = await fetch(INBOX_URL + "?limit=500");
         const data = await res.json();
         if (!res.ok || data.status !== "ok") {
           console.error("inbox error:", data);
-          showToast("Gagal memuat kotak masuk");
+          if (!silent) showToast("Gagal memuat kotak masuk");
           return;
         }
-
+    
         allMessages = Array.isArray(data.messages) ? data.messages : [];
-
-        allThreads = buildThreadsFromMessages(allMessages);
-
+        allThreads  = buildThreadsFromMessages(allMessages);
+    
         if (!activePhone && allThreads.length > 0) {
           activePhone = allThreads[0].phone;
         } else if (activePhone && !allThreads.some(t => t.phone === activePhone)) {
           activePhone = allThreads.length ? allThreads[0].phone : null;
         }
-
+    
         renderThreadList();
         renderChatWindow();
-        showToast("Kotak masuk berhasil dimuat", 1800);
+        if (!silent) showToast("Kotak masuk berhasil dimuat", 1800);
       } catch (err) {
         console.error(err);
-        showToast("Error memuat kotak masuk");
+        if (!silent) showToast("Error memuat kotak masuk");
       }
     }
 
@@ -468,10 +469,10 @@
         showToast("Isi pesan dulu");
         return;
       }
-
+    
       sendBtn.disabled = true;
       showToast("Mengirim balasan...");
-
+    
       try {
         const res = await fetch(BACKEND_CUSTOM_URL, {
           method: "POST",
@@ -481,7 +482,7 @@
             text: text
           })
         });
-
+    
         const data = await res.json();
         if (!res.ok || data.status !== "ok") {
           console.error("sendReply error:", data);
@@ -489,6 +490,26 @@
         } else {
           showToast("Balasan terkirim ✓");
           if (replyInput) replyInput.value = "";
+    
+          // ===> TAMBAHKAN PSEUDO-BUBBLE KITA DI SINI
+          const thread = allThreads.find((t) => t.phone === activePhone);
+          if (thread) {
+            const now = new Date().toISOString();
+            const outgoingMsg = {
+              id: "local-" + now,       // id lokal aja, gak masalah
+              at: now,
+              phone: activePhone,
+              from_me: true,            // penting buat bubble kanan
+              message_type: "outgoing",
+              message_text: text,
+              is_quick_reply: false
+            };
+            thread.messages.push(outgoingMsg);
+            thread.lastTime = now;
+            renderChatWindow();
+            renderThreadList();         // biar urutan thread ke atas
+          }
+          // nanti polling otomatis (di langkah 2) akan sync ke data DB
         }
       } catch (err) {
         console.error(err);
@@ -498,17 +519,25 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      loadInbox();
-
-      document.getElementById("btnRefresh").addEventListener("click", loadInbox);
-      document.getElementById("btnSendReply").addEventListener("click", sendReply);
-
-      document.getElementById("replyText").addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendReply();
-        }
+      document.addEventListener("DOMContentLoaded", () => {
+        // pertama kali load (pakai toast)
+        loadInbox();
+      
+        document.getElementById("btnRefresh").addEventListener("click", () => {
+          loadInbox();  // manual refresh
+        });
+        document.getElementById("btnSendReply").addEventListener("click", sendReply);
+        document.getElementById("replyText").addEventListener("keypress", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendReply();
+          }
+        });
+      
+        // ===> AUTO REFRESH SETIAP 10 DETIK (silent)
+        setInterval(() => {
+          loadInbox({ silent: true });
+        }, 10000); // 10000 ms = 10 detik, boleh diperkecil kalau mau
       });
     });
   </script>
