@@ -1350,95 +1350,96 @@
         .getElementById("schedule")
         .addEventListener("change", updateSummarySchedule);
 
-      // SEND BROADCAST
-      document
-        .getElementById("sendBtn")
-        .addEventListener("click", async () => {
-          const outputEl     = document.getElementById("output");
-          const sel          = document.getElementById("templateSelect");
-          const templateName = sel.value;
+// SEND BROADCAST
+document
+  .getElementById("sendBtn")
+  .addEventListener("click", async () => {
+    const outputEl     = document.getElementById("output");
+    const sel          = document.getElementById("templateSelect");
+    const templateName = sel.value;
 
-          if (!templateName) {
-            alert("Please select a template.");
-            return;
-          }
-          if (!recipients.length) {
-            alert("Add at least one recipient.");
-            return;
-          }
+    if (!templateName) {
+      alert("Please select a template.");
+      return;
+    }
+    if (!recipients.length) {
+      alert("Add at least one recipient.");
+      return;
+    }
 
-          const bodyPayload = {
-            template_name: templateName,
-            rows: recipients
-          };
+    const bodyPayload = {
+      template_name: templateName,
+      rows: recipients
+    };
 
-          if (currentSenderPhone) {
-            bodyPayload.sender_phone = currentSenderPhone;
-          }
+    if (currentSenderPhone) {
+      bodyPayload.sender_phone = currentSenderPhone;
+    }
 
-          // === jadwal kirim (optional) ===
-          const scheduleVal = document.getElementById("schedule").value;
-          if (scheduleVal) {
-            bodyPayload.scheduled_at = scheduleVal;
-          }
+    // === jadwal kirim (optional) ===
+    const scheduleVal = document.getElementById("schedule").value;
+    if (scheduleVal) {
+      bodyPayload.scheduled_at = scheduleVal;
+    }
 
-          // FOLLOWUP CONFIG
-          const followText  = document.getElementById("followupText")?.value.trim() || "";
-          const followAttach = document.getElementById("followupAttachment")?.value.trim() || "";
-          const followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
+    // FOLLOWUP CONFIG
+    const followText       = document.getElementById("followupText")?.value.trim() || "";
+    const followAttach     = document.getElementById("followupAttachment")?.value.trim() || "";
+    const followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
 
-          if (followText) {
-            const followup = { text: followText };
-            if (followAttach) {
-              const staticMedia = {
-                type: "document",
-                link: followAttach
-              };
-              if (followAttachName) {
-                staticMedia.filename = followAttachName;
-              }
-              followup.static_media = staticMedia;
-            }
-            bodyPayload.followup = followup;
-          }
+    if (followText) {
+      const followup = { text: followText };
+      if (followAttach) {
+        const staticMedia = {
+          type: "document",
+          link: followAttach
+        };
+        if (followAttachName) {
+          staticMedia.filename = followAttachName;
+        }
+        followup.static_media = staticMedia;
+      }
+      bodyPayload.followup = followup;
+    }
 
-          // === BUKA MODAL DULU DENGAN STATUS "MENGIRIM..." ===
-          const pendingRows = recipients.map((r) => ({
-            phone: r.phone
-          }));
-          openBroadcastPendingModal(pendingRows);
+    // === BUKA MODAL DULU DENGAN STATUS "MENGIRIM..." ===
+    const pendingRows = recipients.map((r) => ({
+      phone: r.phone
+    }));
+    openBroadcastPendingModal(pendingRows);
 
-          outputEl.textContent = `Sending to ${recipients.length} recipients...`;
+    outputEl.textContent = `Sending to ${recipients.length} recipients...`;
 
-          try {
-            const res  = await fetch(BACKEND_BROADCAST_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(bodyPayload)
-            });
-              const data = await res.json();
-              outputEl.textContent = JSON.stringify(data, null, 2);
-              
-              // treat "ok" dan "scheduled" sama-sama sebagai sukses
-              if (res.ok && (data.status === "ok" || data.status === "scheduled")) {
-                const hasFollowup = !!followText;     // kalau kamu pakai follow up
-                openBroadcastModal(data, hasFollowup);
-              
-                const toastLabel =
-                  data.status === "scheduled"
-                    ? "Broadcast berhasil dijadwalkan."
-                    : "Broadcast selesai dikirim.";
-              
-                showToast(
-                  "Success",
-                  toastLabel,
-                  "✅",
-                  3500
-                );
-              } else {
-                showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
-              }
-            });
+    try {
+      const res = await fetch(BACKEND_BROADCAST_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyPayload)
+      });
+
+      const data = await res.json();
+      outputEl.textContent = JSON.stringify(data, null, 2);
+
+      // treat "ok" dan "scheduled" sama-sama sebagai sukses
+      if (res.ok && (data.status === "ok" || data.status === "scheduled")) {
+        const hasFollowup = !!followText; // apakah follow-up dipakai
+        openBroadcastModal(data, hasFollowup);
+
+        const toastLabel =
+          data.status === "scheduled"
+            ? "Broadcast berhasil dijadwalkan."
+            : "Broadcast selesai dikirim.";
+
+        showToast("Success", toastLabel, "✅", 3500);
+      } else {
+        showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
+      }
+    } catch (err) {
+      console.error("Error saat send broadcast:", err);
+      outputEl.textContent = "Error: " + err.message;
+      showToast("Error", "Broadcast error: " + err.message, "⚠️", 4000);
+    }
+  });
 
       // CREATE TEMPLATE
       document
