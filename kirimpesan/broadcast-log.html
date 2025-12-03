@@ -227,11 +227,9 @@
         const tpl     = log.template_name || "-";
       
         const total  = Number(log.total || 0);
-        const okAll = Number(log.ok || 0);
-        const failAll   = Number(log.failed || 0);
-        const pending = Math.max(0, total - okAll - failAll);
-        const templateTotal = Math.max(0, total - follow);
-        const okTemplate = Math.max(0, okAll - follow);
+        const ok = Number(log.total || 0) - Number(log.followup_count || 0);
+        const fail   = Number(log.failed || 0);
+        const pending = Math.max(0, total - ok - fail);
       
         const follow  = Number(log.followup_count || 0);
       
@@ -242,10 +240,6 @@
           <td class="px-3 py-1.5 text-slate-600">${sender}</td>
           <td class="px-3 py-1.5 text-center">${total}</td>
           <td class="px-3 py-1.5 text-center text-orange-600">${pending}</td>
-          <!-- OK = OK template -->
-          <td class="px-3 py-1.5 text-center text-emerald-600">${okTemplate}</td>
-          <!-- Gagal = gagal semua (kebanyakan dari template) -->
-          <td class="px-3 py-1.5 text-center text-red-600">${failAll}</td>
           <td class="px-3 py-1.5 text-center text-emerald-600">${ok}</td>
           <td class="px-3 py-1.5 text-center text-red-600">${fail}</td>
           <td class="px-3 py-1.5 text-center">${follow}</td>
