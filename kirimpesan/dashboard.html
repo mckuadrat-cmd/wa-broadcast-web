@@ -1416,22 +1416,29 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(bodyPayload)
             });
-            const data = await res.json();
-            outputEl.textContent = JSON.stringify(data, null, 2);
-
-            if (res.ok && data.status === "ok") {
-              showToast("Success", "Broadcast selesai. Lihat ringkasan hasil.", "✅", 3500);
-              const hasFollowup = !!followText;
-              openBroadcastModal(data, hasFollowup);
-            } else {
-              showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
-            }
-          } catch (err) {
-            console.error(err);
-            outputEl.textContent = "Error: " + err.message;
-            showToast("Error", "Broadcast error: " + err.message, "⚠️", 4000);
-          }
-        });
+              const data = await res.json();
+              outputEl.textContent = JSON.stringify(data, null, 2);
+              
+              // treat "ok" dan "scheduled" sama-sama sebagai sukses
+              if (res.ok && (data.status === "ok" || data.status === "scheduled")) {
+                const hasFollowup = !!followText;     // kalau kamu pakai follow up
+                openBroadcastModal(data, hasFollowup);
+              
+                const toastLabel =
+                  data.status === "scheduled"
+                    ? "Broadcast berhasil dijadwalkan."
+                    : "Broadcast selesai dikirim.";
+              
+                showToast(
+                  "Success",
+                  toastLabel,
+                  "✅",
+                  3500
+                );
+              } else {
+                showToast("Error", "Broadcast error. Cek detail di bawah.", "⚠️", 4000);
+              }
+            });
 
       // CREATE TEMPLATE
       document
