@@ -219,61 +219,46 @@
 
       statusEl.textContent = `Menampilkan ${logs.length} broadcast terakhir.`;
 
-logs.forEach((log, idx) => {
-  const tr = document.createElement("tr");
-
-  const created = formatDateTime(log.created_at);
-  const sender  = log.sender_phone || "-";
-  const tpl     = log.template_name || "-";
-
-  const total    = Number(log.total || 0);              // template + follow-up
-  const follow   = Number(log.followup_count || 0);     // hanya follow-up
-  const okAll    = Number(log.ok || 0);                 // OK semua pesan
-  const failAll  = Number(log.failed || 0);             // Gagal semua pesan
-
-  // 1) total template saja
-  const templateTotal = Math.max(0, total - follow);
-
-  // 2) OK template (OK semua dikurangi follow-up)
-  const okTemplate = Math.max(0, okAll - follow);
-
-  // 3) Pending template
-  const pendingTemplate = Math.max(
-    0,
-    templateTotal - okTemplate - failAll
-  );
-
-  tr.innerHTML = `
-    <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
-    <td class="px-3 py-1.5 text-slate-700 whitespace-nowrap">${created}</td>
-    <td class="px-3 py-1.5 text-slate-700">${tpl}</td>
-    <td class="px-3 py-1.5 text-slate-600">${sender}</td>
-
-    <!-- Total = template + follow-up -->
-    <td class="px-3 py-1.5 text-center">${total}</td>
-
-    <!-- Pending = pending template -->
-    <td class="px-3 py-1.5 text-center text-orange-600">${pendingTemplate}</td>
-
-    <!-- OK = OK template -->
-    <td class="px-3 py-1.5 text-center text-emerald-600">${okTemplate}</td>
-
-    <!-- Gagal = gagal semua (kebanyakan dari template) -->
-    <td class="px-3 py-1.5 text-center text-red-600">${failAll}</td>
-
-    <!-- Follow-up = jumlah pesan follow-up -->
-    <td class="px-3 py-1.5 text-center">${follow}</td>
-
-    <td class="px-3 py-1.5 text-center">
-      <a href="/kirimpesan/broadcast-log-detail.html?id=${encodeURIComponent(log.id)}"
-         class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700 hover:bg-slate-100">
-        Detail
-      </a>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-});
+      logs.forEach((log, idx) => {
+        const tr = document.createElement("tr");
+      
+        const created = formatDateTime(log.created_at);
+        const sender  = log.sender_phone || "-";
+        const tpl     = log.template_name || "-";
+      
+        const total  = Number(log.total || 0);
+        const okAll = Number(log.ok || 0);
+        const failAll   = Number(log.failed || 0);
+        const pending = Math.max(0, total - ok - fail);
+        const templateTotal = Math.max(0, total - follow);
+        const okTemplate = Math.max(0, okAll - follow);
+      
+        const follow  = Number(log.followup_count || 0);
+      
+        tr.innerHTML = `
+          <td class="px-3 py-1.5 text-slate-500">${idx + 1}</td>
+          <td class="px-3 py-1.5 text-slate-700 whitespace-nowrap">${created}</td>
+          <td class="px-3 py-1.5 text-slate-700">${tpl}</td>
+          <td class="px-3 py-1.5 text-slate-600">${sender}</td>
+          <td class="px-3 py-1.5 text-center">${total}</td>
+          <td class="px-3 py-1.5 text-center text-orange-600">${pending}</td>
+          <!-- OK = OK template -->
+          <td class="px-3 py-1.5 text-center text-emerald-600">${okTemplate}</td>
+          <!-- Gagal = gagal semua (kebanyakan dari template) -->
+          <td class="px-3 py-1.5 text-center text-red-600">${failAll}</td>
+          <td class="px-3 py-1.5 text-center text-emerald-600">${ok}</td>
+          <td class="px-3 py-1.5 text-center text-red-600">${fail}</td>
+          <td class="px-3 py-1.5 text-center">${follow}</td>
+          <td class="px-3 py-1.5 text-center">
+            <a href="/kirimpesan/broadcast-log-detail.html?id=${encodeURIComponent(log.id)}"
+               class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700 hover:bg-slate-100">
+              Detail
+            </a>
+          </td>
+        `;
+      
+        tbody.appendChild(tr);
+      });
 
       showToast("Loaded", "Riwayat broadcast berhasil dimuat.", "✅", 2000);
     } catch (err) {
