@@ -566,12 +566,16 @@
     // =======================
     // KONSTAN BACKEND
     // =======================
-    const API_BASE = "https://api.mckuadrat.com/kirimpesan/";
-    const BACKEND_BROADCAST_URL       = API_BASE + "broadcast";
-    const BACKEND_TEMPLATES_URL       = API_BASE + "templates";
-    const BACKEND_CREATE_TEMPLATE_URL = API_BASE + "templates/create";
-    const BACKEND_SENDERS_URL         = API_BASE + "senders";
-    const BACKEND_LOG_DETAIL_URL      = API_BASE + "broadcast/logs/";
+// Domain backend (tanpa path)
+const API_BASE   = "https://api.mckuadrat.com";
+const API_PREFIX = "/kirimpesan";
+
+// Semua endpoint dibangun dari 1 prefix
+const BACKEND_BROADCAST_URL       = `${API_BASE}${API_PREFIX}/broadcast`;
+const BACKEND_TEMPLATES_URL       = `${API_BASE}${API_PREFIX}/templates`;
+const BACKEND_CREATE_TEMPLATE_URL = `${API_BASE}${API_PREFIX}/templates/create`;
+const BACKEND_SENDERS_URL         = `${API_BASE}${API_PREFIX}/senders`;
+const BACKEND_LOG_DETAIL_URL      = `${API_BASE}${API_PREFIX}/broadcast/logs/`;
 
     let templates  = [];
     let recipients = []; // { phone, var1, var2, ... }
@@ -837,6 +841,28 @@
         showToast("Error", "Error loading templates from backend.", "⚠️");
       }
     }
+
+    function countVars(text) {
+      const matches = text.match(/\{\{(\d+)\}\}/g);
+      if (!matches) return 0;
+      const nums = matches.map(m => parseInt(m.replace(/[{}]/g, ""), 10));
+      return Math.max(...nums);
+    }
+    
+    let currentMaxVar = 0;
+    
+    selTpl.addEventListener("change", () => {
+      const name = selTpl.value;
+      const tpl  = templates.find((t) => t.name === name);
+      const bodyText = getTemplateBodyText(tpl) || "";
+    
+      previewEl.value = bodyText;
+      document.getElementById("summaryTemplate").textContent = name || "Not selected";
+    
+      currentMaxVar = countVars(bodyText);   // <– pakai fungsi ini
+      renderManualVarInputs(currentMaxVar);
+      renderTemplateButtons(tpl);
+    });
 
     // =======================
     // ADD VARIABLE BUTTON (Body Text builder)
@@ -1389,14 +1415,23 @@
       
           if (followText) {
             const followup = { text: followText };
+            
             if (followAttach) {
+              let filename = followAttachName;
+            
+              // Kalau user belum isi, kita kasih default yang jelas
+              if (!filename) {
+                filename = "Surat_Penerimaan_{{1}}.pdf"; 
+                // atau misal:
+                // filename = "Surat_Penerimaan_{{1}}.pdf";
+              }
+            
               const staticMedia = {
                 type: "document",
-                link: followAttach
+                link: followAttach,
+                filename
               };
-              if (followAttachName) {
-                staticMedia.filename = followAttachName;
-              }
+            
               followup.static_media = staticMedia;
             }
             bodyPayload.followup = followup;
