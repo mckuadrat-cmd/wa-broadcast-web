@@ -129,7 +129,7 @@
                 <label class="font-medium">Language</label>
                 <input
                   type="text"
-                  value="English (en)"
+                  value="bahasa template"
                   disabled
                   class="w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500"
                 />
@@ -576,6 +576,8 @@ const BACKEND_TEMPLATES_URL       = `${API_BASE}${API_PREFIX}/templates`;
 const BACKEND_CREATE_TEMPLATE_URL = `${API_BASE}${API_PREFIX}/templates/create`;
 const BACKEND_SENDERS_URL         = `${API_BASE}${API_PREFIX}/senders`;
 const BACKEND_LOG_DETAIL_URL      = `${API_BASE}${API_PREFIX}/broadcast/logs/`;
+
+const DEFAULT_FOLLOWUP_FILENAME = "Surat_Penerimaan_{{1}}.pdf";
 
     let templates  = [];
     let recipients = []; // { phone, var1, var2, ... }
@@ -1411,27 +1413,23 @@ const BACKEND_LOG_DETAIL_URL      = `${API_BASE}${API_PREFIX}/broadcast/logs/`;
           // FOLLOWUP CONFIG
           const followText       = document.getElementById("followupText")?.value.trim() || "";
           const followAttach     = document.getElementById("followupAttachment")?.value.trim() || "";
-          const followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
-      
+          let   followAttachName = document.getElementById("followupAttachmentName")?.value.trim() || "";
+          
           if (followText) {
             const followup = { text: followText };
-            
             if (followAttach) {
-              let filename = followAttachName;
-            
-              // Kalau user belum isi, kita kasih default yang jelas
-              if (!filename) {
-                filename = "Surat_Penerimaan_{{1}}.pdf"; 
-                // atau misal:
-                // filename = "Surat_Penerimaan_{{1}}.pdf";
+          
+              // kalau kosong, pakai default
+              if (!followAttachName) {
+                followAttachName = DEFAULT_FOLLOWUP_FILENAME;
               }
-            
+          
               const staticMedia = {
                 type: "document",
                 link: followAttach,
-                filename
+                filename: followAttachName
               };
-            
+          
               followup.static_media = staticMedia;
             }
             bodyPayload.followup = followup;
