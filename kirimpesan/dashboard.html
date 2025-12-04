@@ -850,9 +850,7 @@ const DEFAULT_FOLLOWUP_FILENAME = "Surat_Penerimaan_{{1}}.pdf";
       const nums = matches.map(m => parseInt(m.replace(/[{}]/g, ""), 10));
       return Math.max(...nums);
     }
-    
-    let currentMaxVar = 0;
-    
+        
     selTpl.addEventListener("change", () => {
       const name = selTpl.value;
       const tpl  = templates.find((t) => t.name === name);
