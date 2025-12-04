@@ -2,9 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>MCKuadrat WA Center – Kirim Pesan</title>
+  <title>MCKuadrat WhatsApp API Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -13,11 +12,7 @@
         extend: {
           colors: {
             mcgreen: "#25D366",
-            mcdark: "#128C7E",
-            mcorange: "#f97316"
-          },
-          fontFamily: {
-            sans: ["system-ui", "ui-sans-serif", "sans-serif"]
+            mcdark: "#128C7E"
           }
         }
       }
@@ -26,14 +21,15 @@
 
   <style>
     body {
-      @apply font-sans;
-      background: radial-gradient(circle at top, #f9731611, #ffffff 40%);
+      background: linear-gradient(to bottom, #ffe9df, #ffffff 40%, #ffffff 60%, #ffe9df);
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900">
+<body class="min-h-screen flex items-center justify-center px-4 text-slate-900">
 
-  <!-- ========== GUARD LOGIN ========== -->
+  <!-- ========================
+       GUARD: WAJIB SUDAH LOGIN
+       ======================= -->
   <script>
     (function () {
       const logged = localStorage.getItem("sb_logged_in");
@@ -45,93 +41,485 @@
     })();
   </script>
 
-  <!-- ========== WRAPPER APP ========== -->
-  <div class="min-h-screen flex">
+  <!-- CARD BESAR DASHBOARD -->
+  <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
 
-    <!-- ========== SIDEBAR ========== -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
-      <div class="h-16 px-4 flex items-center gap-3 border-b border-slate-200">
-        <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-mcgreen to-mcdark flex items-center justify-center text-white text-xl">
-          💬
-        </div>
-        <div>
-          <div class="text-sm font-semibold">MCKuadrat WA Center</div>
-          <div class="text-[11px] text-slate-500">Sekolah & Lembaga</div>
-        </div>
-      </div>
-
-      <nav class="flex-1 px-2 py-3 space-y-1 text-sm">
-        <a href="/kirimpesan/template.html"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600">
-          <span>📄</span>
-          <span>Manage Template</span>
-        </a>
-        <a href="/kirimpesan/dashboard.html"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 font-semibold">
-          <span>📤</span>
-          <span>Kirim Pesan</span>
-        </a>
-        <a href="/kirimpesan/history.html"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600">
-          <span>🕒</span>
-          <span>Riwayat Broadcast</span>
-        </a>
-        <a href="/kirimpesan/inbox.html"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600">
-          <span>💬</span>
-          <span>Kotak Masuk</span>
-        </a>
-        <a href="/kirimpesan/billing.html"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600">
-          <span>💳</span>
-          <span>Pembayaran</span>
-        </a>
-      </nav>
-
-      <div class="px-3 py-3 border-t border-slate-200 text-[11px] text-slate-500">
-        <div>MCKuadrat WhatsApp API</div>
-        <div class="flex items-center gap-1">
-          <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-          <span>Backend: ONLINE</span>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ========== MAIN AREA ========== -->
-    <div class="flex-1 flex flex-col">
-
-      <!-- TOPBAR -->
-      <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-        <div>
-          <div class="text-sm font-semibold">Kirim Pesan</div>
-          <div class="text-xs text-slate-500">
-            Kirim broadcast, atur jadwal, dan follow-up dari satu tempat.
+    <!-- Top Bar (di dalam card) -->
+    <header class="w-full border-b border-slate-200 bg-white">
+      <div class="mx-auto flex items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f7542e]/10">
+            <span class="text-2xl">💬</span>
+          </div>
+          <div>
+            <div class="text-sm font-semibold">WhatsApp API Dashboard</div>
+            <div class="text-xs text-slate-500">Manage templates and broadcast messages</div>
           </div>
         </div>
-        <div class="flex items-center gap-3 text-xs text-slate-600">
-          <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
-          <button
-            onclick="logout()"
-            class="px-3 py-1 rounded-full border border-slate-200 hover:bg-slate-50 text-[11px] text-slate-600">
+        <div class="hidden text-sm text-slate-500 sm:flex sm:items-center sm:gap-4">
+          Hai, <span id="schoolLabel" class="font-medium">Sekolah Pesat Bogor</span>
+
+          <a
+            href="/kirimpesan/broadcast-log.html"
+            class="text-xs font-semibold text-mcgreen underline hover:text-mcdark"
+          >
+            Riwayat Broadcast
+          </a>
+
+          <a
+          href="/kirimpesan/inbox.html"
+          class="text-xs font-semibold text-mcgreen underline hover:text-mcdark"
+          >
+            Kotak Masuk
+          </a>
+
+          <button onclick="logout()" class="text-xs font-semibold text-red-500 underline">
             Logout
           </button>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <!-- CONTENT -->
-      <main class="flex-1 p-6 bg-slate-50">
-        <!-- NANTI ISI FORM KIRIM PESAN DI SINI -->
-        <div
-          id="broadcastContent"
-          class="max-w-6xl mx-auto grid gap-4 md:grid-cols-2"
+    <!-- Main -->
+    <main class="mx-auto px-6 py-6 bg-white">
+      <div class="grid gap-4 md:grid-cols-2">
+        <!-- LEFT: Create Template Message -->
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-[#f7542e]/10 text-[#f7542e]">
+              <span class="text-lg">✏️</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-semibold">Create Template Message</h2>
+              <p class="text-xs text-slate-500">
+                Design reusable message templates for WhatsApp Business API
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-sm">
+            <!-- Template Name -->
+            <div class="space-y-1">
+              <label class="font-medium">Template Name <span class="text-red-500">*</span></label>
+              <input
+                id="tpl_name"
+                type="text"
+                placeholder="e.g., order_confirmation"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              />
+              <p class="text-xs text-slate-500">
+                Use lowercase and underscores only
+              </p>
+            </div>
+
+            <!-- Category & Language -->
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="space-y-1">
+                <label class="font-medium">Category</label>
+                <select
+                  id="tpl_category"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                >
+                  <option value="UTILITY">Utility</option>
+                  <option value="MARKETING">Marketing</option>
+                  <option value="AUTHENTICATION">Authentication</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="font-medium">Language</label>
+                <input
+                  type="text"
+                  value="bahasa template"
+                  disabled
+                  class="w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500"
+                />
+              </div>
+            </div>
+
+            <!-- Header (optional) -->
+            <div class="space-y-1">
+              <label class="font-medium">Header (Optional)</label>
+              <input
+                id="tpl_header"
+                type="text"
+                placeholder="e.g., *INFORMASI PENTING* (kosongkan jika tidak perlu)"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              />
+            </div>
+
+            <!-- Body Text -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="font-medium">Body Text <span class="text-red-500">*</span></label>
+                <button
+                  id="btnAddVariable"
+                  type="button"
+                  class="rounded-full border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+                >
+                  + Add Variable
+                </button>
+              </div>
+              <textarea
+                id="tpl_body"
+                rows="5"
+                placeholder="Enter your message template here..."
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              ></textarea>
+              <p class="text-xs text-slate-500">
+                Gunakan {{1}}, {{2}}, {{3}} untuk variabel. Contoh:
+                <span class="font-mono">Hello {{1}}, here is your test result.</span>
+              </p>
+            </div>
+
+            <!-- Dynamic examples (ikut Body Text) -->
+            <div class="space-y-1">
+              <label class="font-medium">Examples for variables (Optional)</label>
+              <div id="tpl_examples_container" class="space-y-1 text-xs text-slate-500">
+                <p class="text-[11px]">
+                  Tambahkan {{1}}, {{2}}, dst pada Body Text. Input contoh akan muncul otomatis di sini.
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="space-y-1">
+              <label class="font-medium">Footer (Optional)</label>
+              <input
+                id="tpl_footer"
+                type="text"
+                placeholder="e.g., Powered by MCKuadrat"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              />
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-1">
+              <label class="font-medium">Buttons (Optional)</label>
+              <p class="mb-1 text-xs text-slate-500">
+                Quick reply buttons (max 3). Kosongkan jika tidak perlu.
+              </p>
+              <div class="space-y-1">
+                <input
+                  id="tpl_btn1"
+                  type="text"
+                  placeholder="Button 1 · e.g., YES"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                />
+                <input
+                  id="tpl_btn2"
+                  type="text"
+                  placeholder="Button 2 · e.g., NO"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                />
+                <input
+                  id="tpl_btn3"
+                  type="text"
+                  placeholder="Button 3 · e.g., MORE INFO"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                />
+              </div>
+            </div>
+
+            <!-- Submit Template -->
+            <div class="pt-2">
+              <button
+                id="btnCreateTpl"
+                type="button"
+                class="inline-flex w-full items-center justify-center rounded-md bg-[#f7542e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04825] transition"
+              >
+                Submit for Review
+              </button>
+            </div>
+
+            <!-- Result -->
+            <div class="pt-2">
+              <p class="mb-1 text-xs font-medium text-slate-500">Template API Response</p>
+
+              <!-- Ringkasan status -->
+              <div
+                id="tplStatus"
+                class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
+              >
+                Belum ada pengajuan template.
+              </div>
+
+              <!-- Detail teknis untuk developer -->
+              <details class="mt-1 text-[11px] text-slate-400">
+                <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
+                <pre
+                  id="tplResult"
+                  class="mt-1 max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+                >// Respon pengajuan template akan muncul di sini</pre>
+              </details>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Send Broadcast Message -->
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-[#f7542e]/10 text-[#f7542e]">
+              <span class="text-lg">📤</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-semibold">Send Broadcast Message</h2>
+              <p class="text-xs text-slate-500">
+                Send messages to multiple recipients at once
+              </p>
+            </div>
+          </div>
+
+          <!-- Sender Number -->
+          <div class="mb-4 space-y-1 text-sm">
+            <div class="flex items-center justify-between">
+              <label class="font-medium">Sender Number</label>
+              <span class="text-xs text-slate-500">Nomor WA Business</span>
+            </div>
+            <select
+              id="senderSelect"
+              class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+            ></select>
+          </div>
+
+          <div class="space-y-4 text-sm">
+            <!-- Select Template -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="font-medium">Select Template</label>
+                <span id="templateStatus" class="text-xs text-slate-500">Loading...</span>
+              </div>
+              <select
+                id="templateSelect"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              >
+                <option value="">Choose a template...</option>
+              </select>
+            </div>
+
+            <!-- Message Preview -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="font-medium">Message *</label>
+                <span class="text-xs text-slate-500">
+                  Variables: {{1}} {{2}} {{3}} ...
+                </span>
+              </div>
+              <textarea
+                id="messagePreview"
+                rows="5"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                placeholder="Body template dari Meta akan muncul di sini..."
+                readonly
+              ></textarea>
+              <!-- PREVIEW QUICK REPLY BUTTONS -->
+              <div id="templateButtonsPreview" class="mt-1 flex flex-wrap gap-2 text-xs"></div>
+            </div>
+
+            <!-- Message Followup (Optional) -->
+            <div class="space-y-1 border-t border-slate-200 pt-3">
+              <label class="font-medium">Message Followup (Optional)</label>
+              <textarea
+                id="followupText"
+                rows="3"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                placeholder="Pesan lanjutan ketika penerima klik quick reply (misal: BERSEDIA). Kosongkan jika ingin mematikan follow-up."
+              ></textarea>
+
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-slate-600">Attachment (link, optional)</label>
+                <input
+                  id="followupAttachment"
+                  type="text"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  placeholder="Link PDF yang sama untuk semua penerima (opsional). Jika kosong, bisa pakai link per-orang dari CSV."
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-slate-600">Attachment filename (optional)</label>
+                <input
+                  id="followupAttachmentName"
+                  type="text"
+                  class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#f7542e]"
+                  placeholder="Misal: Surat_Penerimaan_Pesat.pdf"
+                />
+              </div>
+
+              <p class="text-[11px] text-slate-500">
+                Gunakan {{1}}, {{2}}, dst di Message Followup untuk mengambil nilai dari kolom setelah nomor di CSV.
+                Jika Attachment kosong tapi CSV punya kolom link di paling kanan, link tersebut akan dipakai untuk kirim PDF per orang.
+              </p>
+            </div>
+
+            <!-- Recipients -->
+            <div class="space-y-2 border-t border-slate-200 pt-3">
+              <div class="flex items-center justify-between">
+                <label class="font-medium">Recipients *</label>
+                <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-600">
+                  👥 <span id="recipientCount">0</span>
+                </span>
+              </div>
+
+              <!-- Single add -->
+              <div class="flex flex-col gap-2 sm:flex-row">
+                <input
+                  id="manualPhone"
+                  type="text"
+                  placeholder="Enter phone number (e.g., 6281234567890)"
+                  class="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+                />
+                <button
+                  id="btnAddRecipient"
+                  type="button"
+                  class="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium hover:bg-slate-100"
+                >
+                  Add
+                </button>
+              </div>
+
+              <!-- CSV upload -->
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input id="csvFile" type="file" accept=".csv" class="hidden" />
+                <button
+                  id="btnUploadCsv"
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium hover:bg-slate-100"
+                >
+                  ⬆ Upload CSV File
+                </button>
+                <span id="csvInfo" class="text-xs text-slate-500"></span>
+              </div>
+
+              <!-- Recipient list -->
+              <div
+                id="recipientList"
+                class="mt-1 max-h-40 space-y-1 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 hidden"
+              ></div>
+
+              <!-- Manual variables (untuk penerima manual) -->
+              <div class="mt-2 space-y-1 border-t border-slate-200 pt-3">
+                <label class="font-medium">Manual Variables (Optional)</label>
+                <p class="text-xs text-slate-500">
+                  Dipakai untuk penerima yang ditambahkan manual. Jumlah kolom mengikuti jumlah {{n}} di template.
+                </p>
+                <div id="manualVarsContainer" class="space-y-1 text-xs"></div>
+              </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="space-y-1 border-t border-slate-200 pt-3">
+              <label class="font-medium">Schedule (Optional)</label>
+              <input
+                id="schedule"
+                type="datetime-local"
+                class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#f7542e]"
+              />
+              <p class="text-xs text-slate-500">
+                Leave empty to send immediately
+              </p>
+            </div>
+
+            <!-- Summary -->
+            <div class="space-y-1 rounded-md border border-sky-200 bg-sky-50 px-3 py-3 text-xs text-slate-700">
+              <p class="font-semibold text-slate-800">Broadcast Summary</p>
+              <div class="flex justify-between">
+                <span class="text-slate-600">Recipients:</span>
+                <span id="summaryRecipients">0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-600">Template:</span>
+                <span id="summaryTemplate">Not selected</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-600">Send Time:</span>
+                <span id="summarySchedule">Immediately</span>
+              </div>
+            </div>
+
+            <!-- Send button -->
+            <div class="pt-1">
+              <button
+                id="sendBtn"
+                type="button"
+                class="inline-flex w-full items-center justify-center rounded-md bg-[#f7542e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04825] transition"
+              >
+                <span id="sendBtnLabel">Send Broadcast Now</span>
+              </button>
+            </div>
+
+            <!-- Output -->
+            <div class="pt-2">
+              <p class="mb-1 text-xs font-medium text-slate-500">Broadcast API Response</p>
+
+              <div
+                id="bcStatus"
+                class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600"
+              >
+                Belum ada pengiriman broadcast.
+              </div>
+
+              <details class="mt-1 text-[11px] text-slate-400">
+                <summary class="cursor-pointer">Lihat detail teknis (developer)</summary>
+                <pre
+                  id="output"
+                  class="mt-1 max-h-40 overflow-auto rounded-md border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-700"
+                >// Hasil kirim broadcast akan muncul di sini</pre>
+              </details>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal hasil broadcast -->
+  <div
+    id="broadcastModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+  >
+    <div class="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl border border-slate-200 max-h-[80vh] flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-slate-800">
+          Hasil Broadcast Terbaru
+        </h3>
+        <button
+          id="broadcastModalClose"
+          type="button"
+          class="text-xs text-slate-500 hover:text-slate-700"
         >
-          <!-- Kiri: card template + pengaturan, kanan: recipients + summary dst -->
-        </div>
-      </main>
+          Tutup ✕
+        </button>
+      </div>
+
+      <p id="broadcastSummaryText" class="text-xs text-slate-600 mb-3">
+        Ringkasan pengiriman akan tampil di sini.
+      </p>
+
+      <div class="flex-1 overflow-auto border border-slate-200 rounded-lg">
+        <table class="min-w-full text-[11px]">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">#</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nomor</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Nama</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Status</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Pesan Follow-up</th>
+              <th class="px-2 py-1 text-left font-semibold text-slate-600">Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="broadcastModalBody" class="divide-y divide-slate-100">
+            <!-- rows via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <p class="mt-2 text-[11px] text-slate-500">
+        *Status pesan follow-up akan menyusul lewat webhook ketika penerima menekan quick reply (misal: BERSEDIA).
+      </p>
     </div>
   </div>
 
-  <!-- ========== TOAST GLOBAL (bisa pakai yg lama) ========== -->
+  <!-- Toast / popup status global -->
   <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
     <div
       id="toastInner"
@@ -147,45 +535,34 @@
     </div>
   </div>
 
-  <!-- ========== SCRIPT GLOBAL (logout + label sekolah) ========== -->
+  <!-- Modal monitor status template -->
+  <div
+    id="tplMonitorModal"
+    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/30"
+  >
+    <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl border border-slate-200">
+      <h3 class="text-sm font-semibold text-slate-800 mb-1">
+        Memantau status template...
+      </h3>
+      <p id="tplMonitorText" class="text-xs text-slate-600 mb-2">
+        Mengirim ke Meta. Menunggu approval template dari WhatsApp...
+      </p>
+      <p id="tplMonitorInfo" class="text-[11px] text-slate-500 mb-3">
+        Pengecekan otomatis setiap 10 detik, maksimal 2 menit.
+      </p>
+      <div class="flex justify-end gap-2">
+        <button
+          id="tplMonitorClose"
+          type="button"
+          class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    (function () {
-      const storedSchool = localStorage.getItem("sb_school") || "sekolahpesatbogor";
-      const SCHOOL_MAP = {
-        "sekolahpesatbogor": "Sekolah Pesat Bogor"
-      };
-      const label = SCHOOL_MAP[storedSchool] || storedSchool;
-      const el = document.getElementById("schoolLabel");
-      if (el) el.textContent = label;
-    })();
-
-    function logout() {
-      localStorage.removeItem("sb_logged_in");
-      localStorage.removeItem("sb_school");
-      window.location.href = "/kirimpesan/";
-    }
-
-    function showToast(title, message, icon = "⏳", duration = 3000) {
-      const toast = document.getElementById("toast");
-      const titleEl = document.getElementById("toastTitle");
-      const msgEl = document.getElementById("toastMessage");
-      const iconEl = document.getElementById("toastIcon");
-
-      if (!toast || !titleEl || !msgEl || !iconEl) return;
-
-      titleEl.textContent = title;
-      msgEl.textContent = message;
-      iconEl.textContent = icon;
-
-      toast.classList.remove("hidden");
-
-      clearTimeout(showToast._timeoutId);
-      showToast._timeoutId = setTimeout(() => {
-        toast.classList.add("hidden");
-      }, duration);
-    }
-  </script>
-  
     // =======================
     // KONSTAN BACKEND
     // =======================
