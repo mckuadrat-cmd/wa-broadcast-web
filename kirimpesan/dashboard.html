@@ -851,19 +851,6 @@ const DEFAULT_FOLLOWUP_FILENAME = "Surat_Penerimaan_{{1}}.pdf";
       return Math.max(...nums);
     }
         
-    selTpl.addEventListener("change", () => {
-      const name = selTpl.value;
-      const tpl  = templates.find((t) => t.name === name);
-      const bodyText = getTemplateBodyText(tpl) || "";
-    
-      previewEl.value = bodyText;
-      document.getElementById("summaryTemplate").textContent = name || "Not selected";
-    
-      currentMaxVar = countVars(bodyText);   // <– pakai fungsi ini
-      renderManualVarInputs(currentMaxVar);
-      renderTemplateButtons(tpl);
-    });
-
     // =======================
     // ADD VARIABLE BUTTON (Body Text builder)
     // =======================
@@ -1230,14 +1217,13 @@ const DEFAULT_FOLLOWUP_FILENAME = "Surat_Penerimaan_{{1}}.pdf";
     // =======================
     // DOM READY
     // =======================
-
     document.addEventListener("DOMContentLoaded", () => {
       initSenderSelect();
       loadTemplates();
       initAddVariableButton();
       renderManualVarInputs(0);
       updateExamplesFromBody();
-
+    
       // Body text → update examples
       const bodyTa = document.getElementById("tpl_body");
       if (bodyTa) {
@@ -1245,24 +1231,30 @@ const DEFAULT_FOLLOWUP_FILENAME = "Surat_Penerimaan_{{1}}.pdf";
           bodyTa.addEventListener(evt, updateExamplesFromBody);
         });
       }
-
-      // change template → update preview, manual vars, button preview
+    
+      // ==========================
+      // PILIH TEMPLATE → PREVIEW
+      // ==========================
       const selTpl    = document.getElementById("templateSelect");
       const previewEl = document.getElementById("messagePreview");
-      selTpl.addEventListener("change", () => {
-        const name = selTpl.value;
-        const tpl  = templates.find((t) => t.name === name);
-        const bodyText = getTemplateBodyText(tpl) || "";
-
-        previewEl.value = bodyText;
-        document.getElementById("summaryTemplate").textContent =
-          name || "Not selected";
-
-        currentMaxVar = getMaxVarIndexFromText(bodyText);
-        renderManualVarInputs(currentMaxVar);
-        renderTemplateButtons(tpl);
-      });
-
+    
+      if (selTpl && previewEl) {
+        selTpl.addEventListener("change", () => {
+          const name = selTpl.value;
+          const tpl  = templates.find((t) => t.name === name);
+          const bodyText = getTemplateBodyText(tpl) || "";
+    
+          previewEl.value = bodyText;
+          document.getElementById("summaryTemplate").textContent =
+            name || "Not selected";
+    
+          // hitung variabel {{n}} dari body
+          currentMaxVar = countVars(bodyText);   // pakai fungsi yang kamu buat
+          renderManualVarInputs(currentMaxVar);
+          renderTemplateButtons(tpl);
+        });
+      }
+ 
       // Manual add recipient
       document
         .getElementById("btnAddRecipient")
