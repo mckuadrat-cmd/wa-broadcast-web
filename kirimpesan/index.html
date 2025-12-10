@@ -1,129 +1,16 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <title>MCKuadrat · Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Broadcast Dashboard</title>
+      <script type="module" crossorigin src="/kirimpesan/assets/index-CKBuRzR3.js"></script>
+      <link rel="stylesheet" crossorigin href="/kirimpesan/assets/index-BL3o_k6i.css">
+    </head>
+
+    <body>
+      <div id="root"></div>
+    </body>
+  </html>
   
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            mcgreen: "#25D366",
-            mcdark: "#128C7E"
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    /* background gradient halus seperti contoh */
-    body {
-      background: linear-gradient(to bottom, #ffe9df, #ffffff 40%, #ffffff 60%, #ffe9df);
-    }
-  </style>
-</head>
-
-<body class="min-h-screen flex items-center justify-center px-4">
-
-  <!-- CARD UTAMA -->
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-10">
-
-    <!-- TITLE -->
-    <h1 class="text-center text-xl font-semibold text-slate-800 mb-1">
-      Welcome back!
-    </h1>
-
-    <p class="text-center text-xs text-slate-500 mb-6">
-      To stay connected, please log in with your personal information.
-    </p>
-
-    <!-- FORM LOGIN -->
-    <form id="loginForm" class="space-y-4 text-sm">
-
-      <div>
-        <label class="block mb-1 text-slate-700">Email Address / Username</label>
-        <input
-          id="username"
-          type="text"
-          placeholder="Enter your email or username"
-          autocomplete="username"
-          class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 outline-none focus:ring-1 focus:ring-mcgreen"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-slate-700">Password</label>
-        <input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          autocomplete="current-password"
-          class="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 outline-none focus:ring-1 focus:ring-mcgreen"
-        />
-      </div>
-
-      <p id="errorBox" class="text-xs text-red-500 min-h-[16px]"></p>
-
-      <button
-        type="submit"
-        class="w-full bg-[#f7542e] hover:bg-[#e04825] text-white font-semibold py-2 rounded-md transition"
-      >
-        Sign in
-      </button>
-    </form>
-
-    <!-- FOOTER -->
-    <p class="text-center text-[11px] text-slate-500 mt-5">
-      Don’t have an account? <span class="text-[#f7542e] cursor-pointer">Sign up</span>
-    </p>
-  </div>
-
-
-<script>
-/* =========================
-   CONFIG AKUN SEKOLAH
-========================= */
-const ACCOUNTS = {
-  "sekolahpesatbogor": {
-    password: "pesat123",
-    schoolId: "sekolahpesatbogor",
-    displayName: "Sekolah Pesat Bogor"
-  }
-};
-
-const DASHBOARD_URL = "/kirimpesan/dashboard.html";
-
-document.getElementById("loginForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-
-  const username = document.getElementById("username").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
-  const errorBox = document.getElementById("errorBox");
-
-  errorBox.textContent = "";
-
-  if (!username || !password) {
-    errorBox.textContent = "Email dan password wajib diisi.";
-    return;
-  }
-
-  const acc = ACCOUNTS[username];
-  if (!acc || acc.password !== password) {
-    errorBox.textContent = "Email atau password salah.";
-    return;
-  }
-
-  localStorage.setItem("sb_logged_in", "1");
-  localStorage.setItem("sb_school", acc.schoolId);
-
-  window.location.href = `${DASHBOARD_URL}?school=${encodeURIComponent(acc.schoolId)}`;
-});
-</script>
-
-</body>
-</html>
