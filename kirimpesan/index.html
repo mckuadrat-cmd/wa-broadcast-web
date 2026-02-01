@@ -5,6 +5,19 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Broadcast Dashboard</title>
+
+      <script>
+        (function () {
+          var p = new URLSearchParams(window.location.search).get("__gh_path");
+          if (!p) return;
+      
+          // bersihin query supaya gak nyangkut
+          var url = new URL(window.location.href);
+          url.searchParams.delete("__gh_path");
+          window.history.replaceState(null, "", p);
+        })();
+      </script>
+
       <script type="module" crossorigin src="/kirimpesan/assets/index-Rj38wN2F.js"></script>
       <link rel="stylesheet" crossorigin href="/kirimpesan/assets/index-2L3d_IAX.css">
     </head>
