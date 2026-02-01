@@ -1,16 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Redirecting...</title>
+    <script>
+      (function () {
+        var base = "/kirimpesan";
+        var fullPath = window.location.pathname + window.location.search + window.location.hash;
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Broadcast Dashboard</title>
-      <script type="module" crossorigin src="/kirimpesan/assets/index-Rj38wN2F.js"></script>
-      <link rel="stylesheet" crossorigin href="/kirimpesan/assets/index-2L3d_IAX.css">
-    </head>
-
-    <body>
-      <div id="root"></div>
-    </body>
-  </html>
-  
+        // lempar ke entry app
+        window.location.replace(base + "/?__gh_path=" + encodeURIComponent(fullPath));
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
